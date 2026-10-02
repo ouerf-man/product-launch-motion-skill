@@ -1,6 +1,6 @@
 ---
 name: product-launch-motion
-description: Make a product or feature launch video for any brand, fully generated in code (HTML + GSAP rendered to MP4 with HyperFrames). No footage, no stock. Interviews the user about the product, the feature and the brand, recommends the best video type from 11 (teaser, kinetic type, UI hero reveal, feature drop, roundup, before/after, problem→solution, use-case montage, integration, milestone, launch-week series), captures real product screens through Claude in Chrome or asks for a precise shot list, then builds, reviews and renders. Optional ElevenLabs voice-over. Use for "launch video", "feature announcement video", "promo for our new feature", "changelog clip", "teaser", "launch week videos".
+description: Make a product or feature launch video for any brand, fully generated in code (HTML + GSAP rendered to MP4 with HyperFrames). No footage, no stock. Interviews the user about the product, the feature and the brand, recommends the best video type from 12 (teaser, kinetic type, UI hero reveal, feature drop, roundup, before/after, problem→solution, use-case montage, integration, milestone, launch-week series, kinetic shape brand film), or rebuilds the motion of a reference video the user loves, captures real product screens through Claude in Chrome or asks for a precise shot list, then builds, reviews and renders. Optional ElevenLabs voice-over. Use for "launch video", "feature announcement video", "promo for our new feature", "changelog clip", "teaser", "launch week videos".
 ---
 
 # Product Launch Motion
@@ -30,11 +30,14 @@ Ask in one compact message (multiple choice where possible). Full question bank:
 7. **Brand:** website URL, brand guide / UI kit / Figma, logo SVG, fonts, colors (`references/intake.md` § Brand).
 8. **Product access:** product URL to open in the user's Chrome, or screenshots (step 3).
 9. **Voice-over:** yes / no. If yes → which **language**, and an **ElevenLabs API key**.
-10. **Music:** a licensed track the user owns (file or link), or "no music". Never use unlicensed music.
+10. **Music:** a licensed track the user owns, or an **original track generated with ElevenLabs Music** (`scripts/elevenlabs.mjs music`), or none. Never use unlicensed music.
+11. **Reference video?** "Is there a launch video whose style you love?" If yes, follow `references/reference-replication.md`. Copy its motion and structure, never its brand, copy or photos.
+12. **Font:** offer a specimen sheet of 6–12 candidate fonts rendered with the user's real lines (headline, sentence, UI string) and let them pick. For Arabic, check that the font supports tashkeel. Check the licence before any public use.
 
 Read the product site yourself first (WebFetch / Chrome) so questions are informed, not generic.
 
 ### 2. Recommend the video type (GATE)
+If the user supplied a reference video, skip the menu: the reference defines the type.
 Use `references/video-types.md` (11 types, beat templates, decision matrix). Recommend **2–3 options**, best first, each with: why it fits, length, format, what assets it needs, difficulty. Default = the lowest-difficulty type that serves the launch size. Show the matching example from the repo README so the user can see it. User picks.
 
 ### 3. Get product visuals
@@ -77,11 +80,13 @@ Audio:
 - Music bed: about 0.45 without VO, about 0.2 under VO, with fade in and fade out.
 
 ### 8. Review loop
+Motion must follow `references/motion-grammar.md`: 8-frame snap entrances, continuous drift, spatial transitions only, an event every ~0.5 s. Render at 60 fps.
 1. `npx hyperframes check` must pass with 0 errors and every contrast check passing.
 2. `npx hyperframes snapshot --at <8–15 key times>`, then **look at the contact sheet**.
 3. Fix overlaps, empty frames, cut-off text and off-brand moments. Snapshot again.
-4. Only then render: `npx hyperframes render -o renders/<name>.mp4`.
-5. Verify the file: duration, audio present, peaks under −1 dB.
+4. Only then render: `npx hyperframes render --fps 60 -o renders/<name>.mp4`.
+5. **Jump scan:** `python3 scripts/jump-scan.py renders/<name>.mp4` must report 0 unexplained flags. A flag usually means a scene background appeared on one frame, or two tweens are fighting over one property.
+6. Verify the file: duration, audio present, peaks under −1 dB.
 
 ### 9. Deliver + learn
 Send the MP4 and list what was assumed. Ask for notes. Turn every note into a rule for this brand (e.g. a `BRAND-RULES.md` next to the project) so the next video starts from it.
@@ -92,6 +97,9 @@ Send the MP4 and list what was assumed. Ask for notes. Turn every note into a ru
 - `references/craft-rules.md`: text, pacing, motion, end cards, sound, accessibility.
 - `references/asset-capture.md`: Chrome capture protocol and per-type shot lists.
 - `references/platform-specs.md`: aspect ratios, lengths, safe zones.
-- `references/audio-and-voice.md`: music, SFX and the ElevenLabs flow.
+- `references/audio-and-voice.md`: music, SFX and the ElevenLabs flow, including Arabic.
+- `references/motion-grammar.md`: measured timings, eases, the 10 rules, anti-patterns, jump QA.
+- `references/reference-replication.md`: workflow to match a reference video shot for shot.
+- `scripts/jump-scan.py`, `scripts/scene-scan.py`, `scripts/contact-sheets.sh`: QA and reference-analysis tools.
 - `scripts/elevenlabs.mjs`: ElevenLabs CLI (voices, tts with timings). Node 18+, no dependencies.
 - `examples/<type>/`: source `index.html` and README for each example video (assets not included).

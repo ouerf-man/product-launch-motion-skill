@@ -15,6 +15,7 @@ Every type is built entirely in code. Lengths are typical; beat times scale to t
 | T09 | Integration / Partnership | new integration, marketplace listing, co-launch | 10–40 s | both logos (with permission), one cross-product flow | 1–2 |
 | T10 | Metric / Milestone | users, funding, anniversary, year in review | 10–60 s | the real numbers | 1–2 |
 | S | Launch-Week Series | 5 launches in 5 days | package | one template, a color per day | 2–3 |
+| T11 | Kinetic Shape Film (brand film) | hero launch / hook video with emotion + product tour, VO optional | 35–50 s | product screens + icons + illustrations | 4–5 |
 
 ## Beat templates
 
@@ -94,6 +95,17 @@ Cut on the bar.
 - 22–27 s: thank you.
 - 27–30 s: logo + what's next.
 
+**T11 Kinetic Shape Film (~45 s, the "Shapes"-style brand film):**
+- 0–4 s: small centred question; illustrated tiles snap in around it, each pop on a word.
+- 4–12 s: the pain, told as fast shots of 0.5–1.5 s. Each word or idea gets one shot inside nested concentric shapes in tonal colour ramps, or on a tilted card. Words fall onto a staircase of cards, and a sliding colour-ramp of cards carries the transition.
+- 12–17 s: the product reveal. An infinite zoom-through of nested shapes (one-frame colour swaps while the geometry keeps moving) lands on the logo inside a concentric octagon. The rings rotate continuously, and the music lifts here.
+- 17–23 s: a 3D word cylinder of features with a cursor hovering; the words explode into an icon dock.
+- 23–35 s: the UI window grows from the dock. Cards insert as flat colour flashes, then their content. The camera pushes to each step on its spoken word, and a light-leak wash sweeps across.
+- 35–42 s: the AI assistant. A mascot face on a blue radial blur, a typed question, the answer, then cards slide in.
+- 42–47 s: a yellow prompt screen, a white table where pills flash to "done", a ticket, and the logo lock-up with the tagline.
+
+Grammar: `references/motion-grammar.md`. Build it via `references/reference-replication.md` when the user brings their own reference.
+
 **S Launch week:**
 - Teaser before the week.
 - Days 1–5: the same bumper template ("Day N / 5", feature name, date, mini UI), with a fixed color per day.
@@ -107,7 +119,7 @@ One music motif across all of it.
 
 | Launch size | Primary | Secondary |
 |---|---|---|
-| Major launch | T03 | T07 for a new category; T01 before launch; T02 for 15 s cutdowns |
+| Major launch | T03 | T11 for an emotional hook / brand film; T07 for a new category; T01 before launch; T02 for 15 s cutdowns |
 | Big feature | T03 short | T06 for AI or speed; T02 when there is little UI |
 | Small feature | T04 | |
 | Changelog | T04 | T05 monthly |

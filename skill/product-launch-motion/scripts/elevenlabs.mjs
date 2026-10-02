@@ -12,6 +12,8 @@
 //       lines.json = [{ "id": "l01", "text": "..." }, ...]
 //       → <dir>/<id>.mp3 per line + <dir>/manifest.json with durations (ffprobe) and per-character timings.
 //       Each request passes previous_text/next_text so prosody flows across lines.
+//   node elevenlabs.mjs music --prompt "..." --seconds 45 --out music.mp3 [--env path]
+//       → original instrumental track (ElevenLabs Music). Describe mood, BPM and where the lift/drop should land.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -104,6 +106,12 @@ if (cmd === "voices") {
     console.log(`${id}  ${probeDuration(file)?.toFixed(2)}s  "${text}"`);
   }
   fs.writeFileSync(path.join(out, "manifest.json"), JSON.stringify(manifest, null, 2));
+} else if (cmd === "music") {
+  const body = { prompt: opt("prompt"), music_length_ms: Math.round(Number(opt("seconds", 30)) * 1000), force_instrumental: true };
+  const res = await api("/v1/music", { method: "POST", body: JSON.stringify(body) });
+  const out = opt("out", "music.mp3");
+  fs.writeFileSync(out, Buffer.from(await res.arrayBuffer()));
+  console.log(`${out}  ${probeDuration(out)?.toFixed(2)}s`);
 } else {
-  console.log("usage: elevenlabs.mjs voices | tts --script lines.json --voice <id> --out <dir>");
+  console.log("usage: elevenlabs.mjs voices | music --prompt .. --seconds N --out f.mp3 | tts --script lines.json --voice <id> --out <dir>");
 }

@@ -33,3 +33,17 @@
    ```
    `lines.json` = `[{"id":"l01","text":"…"}]` → `assets/vo/l01.mp3…` plus `manifest.json` (durations, character timings).
 7. **Place the lines:** each `<audio id="vo-l01" src="assets/vo/l01.mp3" data-start="…" data-duration="…">` goes at its scene start. Shift by ±0.2 s to avoid overlapping a hard cut. If a line runs past its scene, extend the scene.
+
+## Original music (ElevenLabs Music)
+```bash
+node scripts/elevenlabs.mjs music --env .env --seconds 50 --out assets/audio/music.mp3 \
+  --prompt "Instrumental modern product launch, playful and elegant, plucky synths, light percussion, 120 BPM. 0-12s curious (problem), clear lift at 12s (product reveal), confident groove, resolved ending. No vocals, leaves room for a voice-over."
+```
+Measure where the energy actually lifts (RMS snippet above), then shift the track (`data-start` / `data-media-start`) so the lift hits the reveal word. If the track ends early, reuse a later section a whole number of bars back for the end card.
+
+## Arabic voice-over
+- Use **Modern Standard Arabic** voices from the shared library. They work by voice ID without adding them to the library; search with `/v1/shared-voices?language=ar&use_cases=advertisement`. In this project's tests, users rejected dialect voices (e.g. Tunisian) as unnatural.
+- Write the script with **full tashkeel**. Unvowelled text gets mispronounced.
+- For brand names, generate 2–3 spelling variants (e.g. لُوَاجِي / لُوَّاجِي / لُووَاجِي), concatenate them into one A/B/C file, and let the user pick by ear.
+- If a line runs long and the model ignores `speed`, time-stretch with `ffmpeg -filter:a atempo=1.1x` (≤ 1.15) and scale the word timings by the same factor.
+- Export word timings from the manifest alignment and sync each visual to its **word**, not just to the start of the line.
