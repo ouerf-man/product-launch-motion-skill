@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Sora"; src: url(assets/fonts/sora-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Sora"; src: url(assets/fonts/sora-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "JetBrains Mono"; src: url(assets/fonts/JetBrainsMono-400.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "JetBrains Mono"; src: url(assets/fonts/JetBrainsMono-700.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      :root {
+        --bg: #040508; --panel: #0D0F14; --panel2: #13161D; --line: #22262F;
+        --text: #EEF0F6; --soft: #C3C8D4; --dim: #8D93A3;
+        --rim: #8EA2FF; --rim-hi: #D4DBFF; --rim-glow: rgba(142,162,255,0.55);
+        --r-lg: 28px; --r-md: 18px; --r-sm: 12px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; background: var(--bg); font-family: "Inter", sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+      .scene { position: absolute; inset: 0; overflow: hidden; background: var(--bg); perspective: 2000px; }
+      .cam { position: absolute; inset: 0; transform-origin: 50% 50%; transform-style: preserve-3d; }
+      .abs { position: absolute; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .w { display: inline-block; margin-right: 0.26em; }
+      .w:last-child { margin-right: 0; }
+
+      /* rim-light: gradient border that sweeps */
+      .rimmed { position: relative; }
+      .rim { position: absolute; inset: 0; border-radius: inherit; padding: 2px; pointer-events: none;
+        background: linear-gradient(115deg, rgba(142,162,255,0) 38%, rgba(212,219,255,0.95) 49%, rgba(142,162,255,0.8) 52%, rgba(142,162,255,0) 64%);
+        background-size: 320% 320%; background-position: 100% 50%;
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+      .sheen { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; overflow: hidden; }
+      .sheen i { position: absolute; top: -20%; bottom: -20%; width: 34%; left: 0; background: linear-gradient(100deg, rgba(142,162,255,0) 0%, rgba(142,162,255,0.10) 45%, rgba(212,219,255,0.16) 50%, rgba(142,162,255,0) 100%); }
+      .glow { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(142,162,255,0.42), rgba(142,162,255,0.10) 55%, rgba(142,162,255,0) 100%); pointer-events: none; }
+
+      /* overlays */
+      #grain { position: absolute; left: -100px; top: -100px; width: 2120px; height: 1280px; opacity: 0.07; pointer-events: none; mix-blend-mode: screen;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>"); }
+      #vig { position: absolute; left: 0; top: 0; pointer-events: none; }
+
+      /* HUD */
+      #hud { position: absolute; inset: 0; pointer-events: none; }
+      .hud-t { position: absolute; font-family: "JetBrains Mono", monospace; font-size: 28px; letter-spacing: 0.08em; color: var(--dim); white-space: nowrap; }
+      #hud-tl { left: 72px; top: 56px; color: var(--soft); }
+      #hud-tl b { color: var(--rim); font-weight: 700; }
+      #hud-tr { right: 72px; top: 56px; }
+      #hud-bl { left: 72px; bottom: 56px; color: var(--soft); }
+      #hud-bl .br { color: var(--rim); }
+      #hud-br { position: absolute; right: 72px; bottom: 68px; display: flex; gap: 8px; }
+      #hud-br span { width: 34px; height: 6px; border-radius: 3px; background: #242833; display: block; }
+      #hud-br span.on { background: var(--rim); }
+
+      /* F1 editor */
+      #f1-card { left: 860px; top: 150px; width: 1500px; height: 980px; border-radius: var(--r-lg); background: linear-gradient(160deg, #15181F, #0B0D11 60%); border: 1px solid var(--line); box-shadow: 0 60px 140px -40px rgba(0,0,0,0.9); }
+      #f1-card .bar { position: absolute; left: 40px; top: 36px; display: flex; gap: 12px; }
+      #f1-card .bar i { width: 16px; height: 16px; border-radius: 50%; background: #262A34; display: block; }
+      #f1-crumb { position: absolute; left: 120px; top: 120px; font-size: 30px; color: var(--dim); }
+      #f1-title { position: absolute; left: 116px; top: 196px; font-family: "Sora"; font-weight: 700; font-size: 92px; letter-spacing: -0.035em; white-space: nowrap; color: var(--text); }
+      #f1-caret { display: inline-block; width: 7px; height: 88px; background: var(--rim); margin-left: 8px; vertical-align: -10px; box-shadow: 0 0 18px var(--rim-glow); }
+      .sk { position: absolute; left: 120px; height: 18px; border-radius: 9px; background: #1E222B; }
+      #f1-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(4,5,8,1) 0%, rgba(4,5,8,0.92) 36%, rgba(4,5,8,0) 62%); }
+      #f1-hook { position: absolute; left: 120px; top: 600px; width: 900px; font-family: "Sora"; font-weight: 700; font-size: 86px; line-height: 1.04; letter-spacing: -0.04em; }
+      #f1-hook .ln { display: block; white-space: nowrap; }
+      #f1-hook .hi { color: var(--rim-hi); }
+
+      /* F2 graph */
+      #f2-svg { position: absolute; left: 0; top: 0; }
+      .nlab { position: absolute; font-size: 34px; font-weight: 500; color: var(--soft); white-space: nowrap; text-shadow: 0 0 10px #040508, 0 0 22px #040508, 0 0 4px #040508; }
+      .nlab.main { font-family: "Sora"; font-weight: 700; font-size: 44px; color: var(--text); }
+
+      /* F3 slash menu */
+      #f3-panel { left: 560px; top: 170px; width: 1040px; height: 760px; border-radius: var(--r-lg); background: linear-gradient(170deg, #15181F, #0C0E12); border: 1px solid var(--line); box-shadow: 0 70px 160px -40px rgba(0,0,0,0.95); }
+      #f3-input { position: absolute; left: 60px; top: 52px; font-family: "JetBrains Mono"; font-size: 46px; color: var(--text); white-space: nowrap; }
+      #f3-input .c { display: inline-block; width: 5px; height: 50px; background: var(--rim); vertical-align: -8px; margin-left: 4px; }
+      #f3-sep { position: absolute; left: 0; right: 0; top: 150px; height: 1px; background: var(--line); }
+      #f3-list { position: absolute; left: 30px; right: 30px; top: 180px; }
+      .cmd { height: 128px; display: flex; align-items: center; gap: 30px; padding: 0 30px; position: relative; z-index: 1; }
+      .cmd .ic { width: 72px; height: 72px; border-radius: var(--r-md); background: #1A1E27; border: 1px solid #2A2F3A; display: grid; place-items: center; color: var(--rim); flex: none; }
+      .cmd .nm { font-family: "JetBrains Mono"; font-size: 42px; color: var(--text); }
+      .cmd .hn { font-size: 30px; color: var(--dim); margin-left: auto; }
+      #f3-hl { position: absolute; left: 30px; right: 30px; top: 180px; height: 128px; border-radius: var(--r-md); background: rgba(142,162,255,0.13); border: 1px solid rgba(142,162,255,0.45); box-shadow: 0 0 40px -6px rgba(142,162,255,0.35); }
+
+      /* F4 sync */
+      #f4-pill { left: 410px; top: 450px; width: 1100px; height: 180px; border-radius: 90px; background: linear-gradient(180deg, #161922, #0D0F14); border: 1px solid var(--line); display: flex; align-items: center; gap: 40px; padding: 0 64px; }
+      #f4-dot { width: 44px; height: 44px; border-radius: 50%; background: var(--rim); box-shadow: 0 0 30px var(--rim), 0 0 80px rgba(142,162,255,0.5); flex: none; }
+      #f4-txt { font-family: "Sora"; font-weight: 700; font-size: 64px; letter-spacing: -0.03em; white-space: nowrap; }
+      #f4-ms { margin-left: auto; font-family: "JetBrains Mono"; font-size: 40px; color: var(--rim-hi); white-space: nowrap; }
+      .ring { position: absolute; left: 474px; top: 518px; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--rim); }
+      #f4-devs { position: absolute; left: 0; right: 0; top: 700px; display: flex; justify-content: center; gap: 28px; }
+      .dev { font-family: "JetBrains Mono"; font-size: 30px; color: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 14px 30px; background: #0B0D11; white-space: nowrap; }
+
+      /* F5 canvas */
+      #f5-dots { position: absolute; left: -200px; top: -200px; width: 2400px; height: 1500px; background-image: radial-gradient(circle, rgba(142,162,255,0.20) 1.6px, transparent 2.2px); background-size: 48px 48px; }
+      .ncard { position: absolute; width: 560px; height: 360px; border-radius: var(--r-lg); background: linear-gradient(165deg, #171A22, #0C0E12); border: 1px solid var(--line); box-shadow: 0 50px 110px -30px rgba(0,0,0,0.95); padding: 44px 48px; }
+      .ncard .tg { display: inline-block; font-family: "JetBrains Mono"; font-size: 28px; color: var(--rim-hi); border: 1px solid rgba(142,162,255,0.4); border-radius: 999px; padding: 6px 18px; }
+      .ncard .tt { font-family: "Sora"; font-weight: 700; font-size: 50px; letter-spacing: -0.03em; margin-top: 26px; white-space: nowrap; }
+      .ncard .l { height: 16px; border-radius: 8px; background: #1F232C; margin-top: 22px; }
+
+      /* F6 search */
+      #f6-k { position: absolute; left: 0; right: 0; top: 150px; text-align: center; font-family: "Sora"; font-weight: 700; font-size: 380px; letter-spacing: -0.05em; line-height: 1; color: #0E1016; -webkit-text-stroke: 2px rgba(142,162,255,0.85); text-shadow: 0 0 60px rgba(142,162,255,0.35); white-space: nowrap; }
+      #f6-field { left: 460px; top: 650px; width: 1000px; height: 140px; border-radius: 70px; background: #0D0F14; border: 1px solid var(--line); display: flex; align-items: center; gap: 30px; padding: 0 56px; }
+      #f6-q { font-size: 50px; color: var(--text); white-space: nowrap; }
+      #f6-q .c { display: inline-block; width: 4px; height: 52px; background: var(--rim); vertical-align: -8px; margin-left: 4px; }
+
+      /* F7 glyph */
+      #f7-two { position: absolute; left: 0; right: 0; top: -40px; text-align: center; font-family: "Sora"; font-weight: 700; font-size: 1500px; line-height: 1; letter-spacing: -0.06em; color: #0A0C11; -webkit-text-stroke: 3px var(--rim); text-shadow: 0 0 80px rgba(142,162,255,0.45); white-space: nowrap; }
+
+      /* tagline */
+      #tg-line { position: absolute; left: 0; right: 0; top: 470px; text-align: center; font-family: "Sora"; font-weight: 700; font-size: 128px; letter-spacing: -0.045em; line-height: 1; white-space: nowrap; }
+      #tg-line .hi { color: var(--rim-hi); text-shadow: 0 0 50px rgba(142,162,255,0.5); }
+      #sil-caret { position: absolute; left: 957px; top: 510px; width: 6px; height: 60px; background: var(--rim); box-shadow: 0 0 16px var(--rim-glow); }
+
+      /* end */
+      #end-horizon { position: absolute; left: 160px; right: 160px; top: 720px; height: 2px; background: linear-gradient(90deg, rgba(142,162,255,0), rgba(212,219,255,1) 50%, rgba(142,162,255,0)); box-shadow: 0 0 30px rgba(142,162,255,0.8); transform-origin: 50% 50%; }
+      #end-bloom { left: 360px; top: 160px; width: 1200px; height: 760px; }
+      #end-logo { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; align-items: center; gap: 44px; }
+      #end-mark { width: 150px; height: 150px; flex: none; }
+      #end-word { font-family: "Sora"; font-weight: 700; font-size: 200px; letter-spacing: -0.06em; line-height: 1; white-space: nowrap; display: flex; align-items: flex-start; }
+      #end-word .two { color: var(--rim-hi); font-size: 120px; margin-left: 18px; margin-top: 4px; text-shadow: 0 0 40px rgba(142,162,255,0.6); }
+      #end-date { position: absolute; left: 0; right: 0; top: 770px; text-align: center; font-family: "Sora"; font-weight: 400; font-size: 56px; letter-spacing: -0.02em; color: var(--text); white-space: nowrap; }
+      #end-url { position: absolute; left: 0; right: 0; top: 880px; text-align: center; font-family: "JetBrains Mono"; font-size: 32px; letter-spacing: 0.06em; color: var(--dim); white-space: nowrap; }
+      #end-url b { color: var(--rim-hi); font-weight: 400; }
+      #end-sweep { position: absolute; left: 0; top: 300px; width: 1920px; height: 220px; pointer-events: none; mix-blend-mode: screen; }
+      #end-sweep i { position: absolute; top: 0; bottom: 0; width: 320px; left: 0; background: radial-gradient(closest-side, rgba(212,219,255,0.5), rgba(142,162,255,0.15) 60%, rgba(142,162,255,0)); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="mus1" src="assets/music/bgm-tech.mp3" data-start="0" data-duration="10" data-media-start="21.53" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":9.9,"v":1},{"t":10,"v":0}]}]}'></audio>
+      <audio id="mus2" src="assets/music/bgm-tech.mp3" data-start="10.5" data-duration="4.5" data-media-start="32.0" data-track-index="21" data-volume="0.36"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":1},{"t":3.1,"v":1},{"t":4.5,"v":0}]}]}'></audio>
+      <audio id="sx-type" src="assets/sfx/typing.mp3" data-start="0.35" data-duration="1.1" data-track-index="22" data-volume="0.16"></audio>
+      <audio id="sx-w1" src="assets/sfx/whoosh-short.mp3" data-start="2.42" data-duration="0.57" data-track-index="23" data-volume="0.16"></audio>
+      <audio id="sx-w2" src="assets/sfx/whoosh-short.mp3" data-start="3.92" data-duration="0.57" data-track-index="24" data-volume="0.16"></audio>
+      <audio id="sx-c1" src="assets/sfx/click-soft.mp3" data-start="4.5" data-duration="0.36" data-track-index="25" data-volume="0.2"></audio>
+      <audio id="sx-c2" src="assets/sfx/click-soft.mp3" data-start="4.75" data-duration="0.36" data-track-index="26" data-volume="0.2"></audio>
+      <audio id="sx-c3" src="assets/sfx/click-soft.mp3" data-start="5.0" data-duration="0.36" data-track-index="25" data-volume="0.2"></audio>
+      <audio id="sx-w3" src="assets/sfx/whoosh-short.mp3" data-start="5.18" data-duration="0.57" data-track-index="23" data-volume="0.16"></audio>
+      <audio id="sx-w4" src="assets/sfx/whoosh-short.mp3" data-start="6.2" data-duration="0.57" data-track-index="24" data-volume="0.15"></audio>
+      <audio id="sx-k1" src="assets/sfx/key-press.mp3" data-start="7.0" data-duration="0.4" data-track-index="26" data-volume="0.22"></audio>
+      <audio id="sx-k2" src="assets/sfx/key-press.mp3" data-start="7.5" data-duration="0.4" data-track-index="25" data-volume="0.22"></audio>
+      <audio id="sx-rise" src="assets/sfx/riser.mp3" data-start="6.8" data-duration="3.2" data-media-start="6.8" data-track-index="27" data-volume="0.3"></audio>
+      <audio id="sx-t1" src="assets/sfx/click-soft.mp3" data-start="8.0" data-duration="0.36" data-track-index="25" data-volume="0.3"></audio>
+      <audio id="sx-t2" src="assets/sfx/click-soft.mp3" data-start="8.5" data-duration="0.36" data-track-index="26" data-volume="0.3"></audio>
+      <audio id="sx-t3" src="assets/sfx/click-soft.mp3" data-start="9.0" data-duration="0.36" data-track-index="25" data-volume="0.3"></audio>
+      <audio id="sx-imp" src="assets/sfx/impact-bass-1.mp3" data-start="10.5" data-duration="2.1" data-track-index="28" data-volume="0.45"></audio>
+      <audio id="sx-d1" src="assets/sfx/click-soft.mp3" data-start="12.03" data-duration="0.36" data-track-index="25" data-volume="0.2"></audio>
+      <audio id="sx-d2" src="assets/sfx/click-soft.mp3" data-start="13.03" data-duration="0.36" data-track-index="26" data-volume="0.2"></audio>
+
+      <!-- ================= F1 EDITOR + HOOK 0–2.5 ================= -->
+      <section id="s1" class="scene clip" data-start="0" data-duration="2.5" data-track-index="1">
+        <div id="f1-cam" class="cam">
+          <div class="glow" style="left:700px; top:-120px; width:1300px; height:900px;"></div>
+          <div id="f1-card" class="abs rimmed">
+            <div class="bar"><i></i><i></i><i></i></div>
+            <div id="f1-crumb">Notes&nbsp;&nbsp;/&nbsp;&nbsp;Ideas</div>
+            <div id="f1-title"><span id="f1-typed"></span><span id="f1-caret"></span></div>
+            <div class="sk" style="top:360px; width:860px"></div>
+            <div class="sk" style="top:410px; width:1040px"></div>
+            <div class="sk" style="top:460px; width:720px"></div>
+            <div class="sk" style="top:560px; width:940px"></div>
+            <div class="sk" style="top:610px; width:600px"></div>
+            <div class="sheen"><i id="f1-sheen"></i></div>
+            <div id="f1-rim" class="rim"></div>
+          </div>
+        </div>
+        <div id="f1-shade"></div>
+        <div id="f1-hook">
+          <span class="ln"><span class="w">Your</span><span class="w">notes</span><span class="w">are</span></span>
+          <span class="ln"><span class="w">about</span><span class="w">to</span><span class="w hi">change.</span></span>
+        </div>
+      </section>
+
+      <!-- ================= F2 GRAPH 2.5–4.0 ================= -->
+      <section id="s2" class="scene clip" data-start="2.5" data-duration="1.5" data-track-index="2">
+        <div id="f2-cam" class="cam">
+          <div class="glow" style="left:560px; top:180px; width:820px; height:760px;"></div>
+          <svg id="f2-svg" width="1920" height="1080" viewBox="0 0 1920 1080"></svg>
+          <div id="f2-labels"></div>
+        </div>
+      </section>
+
+      <!-- ================= F3 SLASH MENU 4.0–5.25 ================= -->
+      <section id="s3" class="scene clip" data-start="4.0" data-duration="1.25" data-track-index="3">
+        <div id="f3-cam" class="cam">
+          <div class="glow" style="left:420px; top:60px; width:1300px; height:900px;"></div>
+          <div id="f3-panel" class="abs rimmed">
+            <div id="f3-input">/ <span id="f3-q">su</span><span class="c"></span></div>
+            <div id="f3-sep"></div>
+            <div id="f3-hl"></div>
+            <div id="f3-list">
+              <div class="cmd"><div class="ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h6"/></svg></div><span class="nm">summarize</span><span class="hn">Condense note</span></div>
+              <div class="cmd"><div class="ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div><span class="nm">link note</span><span class="hn">Connect ideas</span></div>
+              <div class="cmd"><div class="ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><span class="nm">ask nimbo</span><span class="hn">Search answers</span></div>
+              <div class="cmd"><div class="ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><span class="nm">canvas</span><span class="hn">Open board</span></div>
+            </div>
+            <div id="f3-rim" class="rim"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= F4 SYNC 5.25–6.25 ================= -->
+      <section id="s4" class="scene clip" data-start="5.25" data-duration="1.0" data-track-index="4">
+        <div id="f4-cam" class="cam">
+          <div class="glow" style="left:260px; top:180px; width:900px; height:720px;"></div>
+          <div class="ring" id="r1"></div><div class="ring" id="r2"></div><div class="ring" id="r3"></div>
+          <div id="f4-pill" class="abs rimmed">
+            <div id="f4-dot"></div>
+            <div id="f4-txt">Synced everywhere</div>
+            <div id="f4-ms">0.04s</div>
+            <div id="f4-rim" class="rim"></div>
+          </div>
+          <div id="f4-devs"><span class="dev">MAC</span><span class="dev">IPHONE</span><span class="dev">IPAD</span><span class="dev">WEB</span></div>
+        </div>
+      </section>
+
+      <!-- ================= F5 CANVAS 6.25–7.0 ================= -->
+      <section id="s5" class="scene clip" data-start="6.25" data-duration="0.75" data-track-index="5">
+        <div id="f5-cam" class="cam">
+          <div id="f5-dots"></div>
+          <div id="f5-a" class="ncard rimmed" style="left:150px; top:170px;"><span class="tg">#launch</span><div class="tt">Launch plan</div><div class="l" style="width:84%"></div><div class="l" style="width:62%"></div><div class="l" style="width:74%"></div><div class="rim" id="f5-ra"></div></div>
+          <div id="f5-b" class="ncard rimmed" style="left:760px; top:430px;"><span class="tg">#design</span><div class="tt">Moodboard</div><div class="l" style="width:70%"></div><div class="l" style="width:88%"></div><div class="l" style="width:52%"></div><div class="rim" id="f5-rb"></div></div>
+          <div id="f5-c" class="ncard rimmed" style="left:1370px; top:140px;"><span class="tg">#read</span><div class="tt">Reading list</div><div class="l" style="width:78%"></div><div class="l" style="width:58%"></div><div class="l" style="width:86%"></div><div class="rim" id="f5-rc"></div></div>
+        </div>
+      </section>
+
+      <!-- ================= F6 SEARCH 7.0–7.5 ================= -->
+      <section id="s6" class="scene clip" data-start="7.0" data-duration="0.5" data-track-index="6">
+        <div id="f6-cam" class="cam">
+          <div class="glow" style="left:460px; top:40px; width:1000px; height:700px;"></div>
+          <div id="f6-k">⌘K</div>
+          <div id="f6-field" class="abs rimmed">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#8EA2FF" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <div id="f6-q">Find anything<span class="c"></span></div>
+            <div id="f6-rim" class="rim"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= F7 GLYPH 7.5–8.0 ================= -->
+      <section id="s7" class="scene clip" data-start="7.5" data-duration="0.5" data-track-index="7">
+        <div id="f7-cam" class="cam">
+          <div class="glow" style="left:360px; top:200px; width:1200px; height:900px;"></div>
+          <div id="f7-two">2</div>
+        </div>
+      </section>
+
+      <!-- ================= HUD 0–8 ================= -->
+      <div id="hud-clip" class="clip" data-start="0" data-duration="8.0" data-track-index="9" style="position:absolute; inset:0; z-index:9; pointer-events:none">
+        <div id="hud">
+          <div id="hud-tl" class="hud-t">NIMBO <b>/</b> ▮</div>
+          <div id="hud-tr" class="hud-t">FRAGMENT <span id="hud-n">01</span> / 07</div>
+          <div id="hud-bl" class="hud-t"><span class="br">[</span> <span id="hud-lab">THE EDITOR</span> <span class="br">]</span></div>
+          <div id="hud-br"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <!-- ================= TAGLINE 8.0–10.0 ================= -->
+      <section id="s8" class="scene clip" data-start="8.0" data-duration="2.0" data-track-index="8">
+        <div id="tg-cam" class="cam">
+          <div id="tg-glow" class="glow" style="left:460px; top:300px; width:1000px; height:480px;"></div>
+          <div id="tg-line"><span class="w">Write.</span><span class="w">Connect.</span><span class="w hi">Remember.</span></div>
+        </div>
+      </section>
+
+      <!-- ================= SILENCE 10.0–10.5 ================= -->
+      <section id="s9" class="scene clip" data-start="10.0" data-duration="0.5" data-track-index="8">
+        <div id="sil-caret"></div>
+      </section>
+
+      <!-- ================= LOGO + DATE 10.5–15 ================= -->
+      <section id="s10" class="scene clip" data-start="10.5" data-duration="4.5" data-track-index="10">
+        <div id="end-cam" class="cam">
+          <div id="end-bloom" class="glow"></div>
+          <div id="end-horizon"></div>
+          <div id="end-logo">
+            <svg id="end-mark" viewBox="0 0 120 120" fill="none">
+              <path d="M34 0H84L120 36V86A34 34 0 0 1 86 120H34A34 34 0 0 1 0 86V34A34 34 0 0 1 34 0Z" fill="#EEF0F6"/>
+              <path d="M84 0V22A14 14 0 0 0 98 36H120Z" fill="#8EA2FF"/>
+              <path d="M30 82V46L58 82V46" stroke="#040508" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="82" cy="78" r="6" fill="#040508"/>
+            </svg>
+            <div id="end-word">nimbo<span class="two">2</span></div>
+          </div>
+          <div id="end-sweep"><i id="end-sweep-i"></i></div>
+          <div id="end-date">Coming March 12</div>
+          <div id="end-url"><b>nimbo.app/2</b>&nbsp;&nbsp;·&nbsp;&nbsp;JOIN THE WAITLIST</div>
+        </div>
+      </section>
+
+      <!-- ================= OVERLAYS ================= -->
+      <div id="ovl" class="clip" data-start="0" data-duration="15" data-track-index="30" style="position:absolute; inset:0; z-index:30; pointer-events:none; overflow:hidden">
+        <svg id="vig" width="1920" height="1080" viewBox="0 0 1920 1080"><defs><radialGradient id="vg" cx="50%" cy="50%" r="75%"><stop offset="55%" stop-color="#040508" stop-opacity="0"/><stop offset="100%" stop-color="#040508" stop-opacity="0.9"/></radialGradient></defs><rect width="1920" height="1080" fill="url(#vg)"/></svg>
+        <div id="grain" data-layout-allow-occlusion data-layout-allow-overflow></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        let seed = 12;
+        const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => Array.from(document.querySelectorAll(s));
+        const NS = "http://www.w3.org/2000/svg";
+
+        // ---------- F2 graph build ----------
+        const svg = $("#f2-svg"), labs = $("#f2-labels");
+        const C = [960, 560];
+        const named = [
+          [520, 300, "Roadmap"], [1430, 270, "Research"], [1560, 760, "Reading list"], [560, 830, "Daily log"], [300, 560, "Meetings"], [1180, 930, "Quotes"],
+        ];
+        const minor = [];
+        for (let i = 0; i < 26; i++) {
+          const a = rnd() * Math.PI * 2, r = 260 + rnd() * 640;
+          minor.push([C[0] + Math.cos(a) * r * 1.25, C[1] + Math.sin(a) * r * 0.75]);
+        }
+        const lines = [];
+        const mkLine = (a, b, w, op) => { const l = document.createElementNS(NS, "line"); l.setAttribute("x1", a[0]); l.setAttribute("y1", a[1]); l.setAttribute("x2", b[0]); l.setAttribute("y2", b[1]); l.setAttribute("stroke", "#8EA2FF"); l.setAttribute("stroke-width", w); l.setAttribute("stroke-opacity", op); l.setAttribute("stroke-linecap", "round"); const L = Math.hypot(b[0] - a[0], b[1] - a[1]); l.setAttribute("stroke-dasharray", L); l.setAttribute("stroke-dashoffset", L); svg.appendChild(l); lines.push(l); return l; };
+        minor.forEach((p, i) => mkLine(named[i % named.length], p, 1.5, 0.22));
+        named.forEach((p) => mkLine(C, p, 3, 0.75));
+        const mkNode = (p, r, fill, op) => { const c = document.createElementNS(NS, "circle"); c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", r); c.setAttribute("fill", fill); c.setAttribute("fill-opacity", op); svg.appendChild(c); return c; };
+        const minorNodes = minor.map((p) => mkNode(p, 5 + rnd() * 4, "#8EA2FF", 0.45));
+        const namedNodes = named.map((p) => mkNode(p, 14, "#C3C8D4", 1));
+        const halo = mkNode(C, 60, "#8EA2FF", 0.18);
+        const center = mkNode(C, 26, "#D4DBFF", 1);
+        center.setAttribute("style", "filter: drop-shadow(0 0 18px #8EA2FF)");
+        const lab = (x, y, t, cls) => { const d = document.createElement("div"); d.className = "nlab" + (cls ? " " + cls : ""); d.textContent = t; d.style.left = x + "px"; d.style.top = y + "px"; labs.appendChild(d); return d; };
+        const mainLab = lab(C[0] - 200, C[1] + 48, "Ideas worth keeping", "main");
+        const namedLabs = named.map((p) => lab(p[0] + 28, p[1] - 22, p[2]));
+
+        // ---------- timeline ----------
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (sel, at, o = {}) => tl.fromTo(sel, { opacity: 0, y: o.y ?? 30, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.5, stagger: o.s ?? 0.08, ease: "power3.out" }, at);
+        const sweep = (sel, at, dur) => tl.fromTo(sel, { backgroundPosition: "100% 50%" }, { backgroundPosition: "0% 50%", duration: dur, ease: "power2.inOut" }, at);
+        const enter = (sel, at, from = 1.08) => tl.fromTo(sel, { scale: from, filter: "blur(10px)", opacity: 0 }, { scale: 1, filter: "blur(0px)", opacity: 1, duration: 0.28, ease: "power3.out" }, at);
+
+        // grain flicker (stepped, deterministic)
+        for (let i = 0; i < 15 / 0.08; i++) tl.set("#grain", { x: Math.round(rnd() * 100 - 50), y: Math.round(rnd() * 100 - 50) }, i * 0.08);
+
+        // HUD
+        const hudLabels = ["THE EDITOR", "LINKED NOTES", "SLASH COMMANDS", "INSTANT SYNC", "INFINITE CANVAS", "QUICK FIND", "WHAT'S NEXT"];
+        const cuts = [0, 2.5, 4.0, 5.25, 6.25, 7.0, 7.5];
+        const segs = $$("#hud-br span");
+        tl.fromTo("#hud", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.1);
+        cuts.forEach((t, i) => {
+          tl.set("#hud-n", { textContent: String(i + 1).padStart(2, "0") }, t);
+          tl.set("#hud-lab", { textContent: hudLabels[i] }, t);
+          tl.set(segs[i], { backgroundColor: "#8EA2FF" }, t);
+          if (i > 0) tl.fromTo("#hud-bl", { opacity: 0.2 }, { opacity: 1, duration: 0.18 }, t);
+        });
+
+        // F1 0–2.5
+        tl.fromTo("#f1-cam", { scale: 1.0 }, { scale: 1.07, duration: 2.5, ease: "none" }, 0);
+        tl.fromTo("#f1-card", { rotationX: 12, rotationY: -26, x: 60, opacity: 0 }, { rotationX: 9, rotationY: -20, x: 0, opacity: 1, duration: 2.5, ease: "power2.out" }, 0);
+        sweep("#f1-rim", 0.2, 1.8);
+        tl.fromTo("#f1-sheen", { x: -600 }, { x: 1800, duration: 1.9, ease: "power2.inOut" }, 0.25);
+        const title = "Ideas worth keeping";
+        for (let i = 0; i <= title.length; i++) tl.set("#f1-typed", { textContent: title.slice(0, i) }, 0.35 + i * 0.055);
+        [0, 1.45, 1.75, 2.05, 2.35].forEach((t, i) => tl.set("#f1-caret", { opacity: i % 2 ? 0 : 1 }, t));
+        wordsIn("#f1-hook .w", 0.3, { s: 0.09 });
+
+        // F2 2.5–4.0
+        enter("#f2-cam", 2.5, 1.12);
+        tl.fromTo("#f2-cam", { rotation: -1.5 }, { rotation: 1, duration: 1.5, ease: "none" }, 2.5);
+        tl.to("#f2-cam", { scale: 1.12, duration: 1.22, ease: "none" }, 2.78);
+        tl.to(lines.slice(-named.length), { strokeDashoffset: 0, duration: 0.45, stagger: 0.06, ease: "power2.out" }, 2.6);
+        tl.to(lines.slice(0, minor.length), { strokeDashoffset: 0, duration: 0.5, stagger: 0.012, ease: "power2.out" }, 2.75);
+        tl.fromTo(namedNodes, { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.3, stagger: 0.06, ease: "back.out(2)" }, 2.75);
+        tl.fromTo(minorNodes, { opacity: 0 }, { opacity: 1, duration: 0.3, stagger: 0.01 }, 2.8);
+        tl.fromTo(namedLabs, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.05 }, 2.9);
+        tl.fromTo(mainLab, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35 }, 2.7);
+        tl.fromTo(halo, { attr: { r: 30 } }, { attr: { r: 90 }, duration: 1.4, ease: "power1.out" }, 2.55);
+
+        // F3 4.0–5.25
+        enter("#f3-cam", 4.0);
+        tl.fromTo("#f3-panel", { rotationX: 10, rotationY: 16 }, { rotationX: 6, rotationY: 9, duration: 1.25, ease: "none" }, 4.0);
+        tl.to("#f3-cam", { scale: 1.1, duration: 0.97, ease: "none" }, 4.28);
+        sweep("#f3-rim", 4.05, 1.1);
+        [[4.5, 128, "lin"], [4.75, 256, "ask"], [5.0, 384, "can"]].forEach(([t, y, q]) => {
+          tl.to("#f3-hl", { y, duration: 0.16, ease: "power3.out" }, t);
+          tl.set("#f3-q", { textContent: q }, t);
+        });
+        tl.set("#f3-q", { textContent: "su" }, 4.0);
+
+        // F4 5.25–6.25
+        enter("#f4-cam", 5.25);
+        tl.to("#f4-cam", { scale: 1.08, duration: 0.97, ease: "none" }, 5.28);
+        sweep("#f4-rim", 5.3, 0.9);
+        ["#r1", "#r2", "#r3"].forEach((r, i) => tl.fromTo(r, { scale: 1, opacity: 0.9 }, { scale: 9, opacity: 0, duration: 0.8, ease: "power2.out" }, 5.3 + i * 0.22));
+        { const o = { v: 0.9 }; tl.to(o, { v: 0.04, duration: 0.55, ease: "power3.out", onUpdate: () => { $("#f4-ms").textContent = o.v.toFixed(2) + "s"; } }, 5.35); }
+        tl.fromTo("#f4-devs .dev", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.25, stagger: 0.06, ease: "power2.out" }, 5.45);
+
+        // F5 6.25–7.0
+        enter("#f5-cam", 6.25, 1.1);
+        tl.fromTo("#f5-cam", { x: 60 }, { x: -60, duration: 0.75, ease: "none" }, 6.25);
+        tl.fromTo("#f5-a", { rotationY: 22, rotationX: 10, z: -120 }, { rotationY: 14, rotationX: 8, z: -60, duration: 0.75, ease: "none" }, 6.25);
+        tl.fromTo("#f5-b", { rotationY: -8, rotationX: 12, z: 80 }, { rotationY: -2, rotationX: 9, z: 140, duration: 0.75, ease: "none" }, 6.25);
+        tl.fromTo("#f5-c", { rotationY: -24, rotationX: 10, z: -200 }, { rotationY: -16, rotationX: 7, z: -140, duration: 0.75, ease: "none" }, 6.25);
+        sweep(["#f5-ra", "#f5-rb", "#f5-rc"], 6.27, 0.7);
+
+        // F6 7.0–7.5
+        enter("#f6-cam", 7.0, 1.12);
+        tl.to("#f6-cam", { scale: 1.06, duration: 0.47, ease: "none" }, 7.03);
+        sweep("#f6-rim", 7.0, 0.5);
+
+        // F7 7.5–8.0
+        tl.fromTo("#f7-cam", { scale: 1.25, opacity: 0, filter: "blur(12px)" }, { scale: 1.08, opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "power3.out" }, 7.5);
+        tl.fromTo("#f7-two", { y: 80 }, { y: 0, duration: 0.5, ease: "power2.out" }, 7.5);
+
+        // TAGLINE 8.0–10.0 (one word per beat)
+        const tw = $$("#tg-line .w");
+        tw.forEach((w, i) => tl.fromTo(w, { opacity: 0, scale: 1.18, filter: "blur(18px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.32, ease: "expo.out" }, 8.0 + i * 0.5));
+        tl.fromTo("#tg-cam", { scale: 1 }, { scale: 1.06, duration: 2.0, ease: "none" }, 8.0);
+        tl.fromTo("#tg-glow", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1.1, duration: 1.4, ease: "power2.out" }, 9.0);
+        tl.to("#tg-line", { opacity: 0, filter: "blur(16px)", duration: 0.18, ease: "power2.in" }, 9.82);
+        tl.to("#tg-glow", { opacity: 0, duration: 0.18 }, 9.82);
+
+        // SILENCE 10.0–10.5: lone caret
+        tl.set("#sil-caret", { opacity: 0 }, 10.0);
+        tl.set("#sil-caret", { opacity: 1 }, 10.12);
+        tl.set("#sil-caret", { opacity: 0 }, 10.36);
+
+        // LOGO 10.5–15 (drop at 10.53)
+        tl.fromTo("#end-bloom", { opacity: 0, scale: 0.4 }, { opacity: 0.9, scale: 1, duration: 1.4, ease: "expo.out" }, 10.5);
+        tl.to("#end-bloom", { opacity: 0.5, duration: 2.5, ease: "power1.inOut" }, 12.0);
+        tl.fromTo("#end-horizon", { scaleX: 0, opacity: 1 }, { scaleX: 1, duration: 0.9, ease: "expo.out" }, 10.5);
+        tl.to("#end-horizon", { opacity: 0.35, duration: 1.2 }, 11.4);
+        tl.fromTo("#end-logo", { opacity: 0, filter: "blur(22px)", scale: 1.08 }, { opacity: 1, filter: "blur(0px)", scale: 1, duration: 0.7, ease: "expo.out" }, 10.53);
+        tl.fromTo("#end-sweep-i", { x: 300, opacity: 1 }, { x: 1300, duration: 0.7, ease: "power2.inOut" }, 10.6);
+        tl.to("#end-sweep-i", { opacity: 0, duration: 0.25 }, 11.05);
+        tl.fromTo("#end-word .two", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, 11.03);
+        tl.fromTo("#end-cam", { scale: 1 }, { scale: 1.035, duration: 4.5, ease: "none" }, 10.5);
+        tl.fromTo("#end-date", { opacity: 0, y: 20, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }, 12.03);
+        tl.fromTo("#end-url", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 13.03);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

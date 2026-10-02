@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Sora"; src: url(assets/fonts/sora-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Sora"; src: url(assets/fonts/sora-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+
+      /* ===== Tallyo brand system (shared with T09) ===== */
+      :root {
+        --paper: #F4F6F1; --ink: #10201A; --ink6: #3C4A43; --muted: #56665E; --line: #E3E8E4; --sunk: #F3F6F3; --white: #FFFFFF;
+        --em: #0F7A55; --em-dk: #0B5E41; --mint: #CFF1E0; --mint-lt: #EFFAF4; --peach: #FFD9C2; --coral: #E8693A;
+        --sent: #2B50C8; --sent-bg: #E6ECFF; --paid: #0F7A55; --paid-bg: #DDF4E8; --draft: #56665E; --draft-bg: #EDF1EE;
+        --r-win: 24px; --r-card: 18px; --r-ctl: 12px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+      .scene { position: absolute; inset: 0; overflow: hidden; background: var(--paper); }
+      .abs { position: absolute; }
+      .w { display: inline-block; margin-right: 0.26em; }
+      .w:last-child { margin-right: 0; }
+
+      /* soft brand gradient */
+      .blob { position: absolute; border-radius: 50%; filter: blur(90px); }
+      #b1 { left: -260px; top: -320px; width: 1100px; height: 900px; background: #BFEBD5; opacity: 0.9; }
+      #b2 { left: 1180px; top: 520px; width: 1000px; height: 820px; background: var(--peach); opacity: 0.85; }
+      #b3 { left: 760px; top: -380px; width: 760px; height: 600px; background: #E3F4EC; opacity: 0.9; }
+      #grain { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(16,32,26,0.06) 1.2px, transparent 1.6px); background-size: 34px 34px; }
+
+      /* caption */
+      #cap { position: absolute; left: 0; right: 0; top: 70px; height: 92px; display: flex; align-items: center; justify-content: center; gap: 22px; }
+      #cap-new { height: 48px; padding: 0 20px; border-radius: 999px; background: var(--ink); color: var(--white); font-weight: 500; font-size: 28px; display: flex; align-items: center; gap: 10px; }
+      #cap-new i { width: 10px; height: 10px; border-radius: 50%; background: #5FD3A0; display: block; }
+      #cap-t { font-family: "Sora", sans-serif; font-weight: 700; font-size: 64px; letter-spacing: -0.035em; white-space: nowrap; }
+
+      /* camera + window */
+      #cam { position: absolute; inset: 0; }
+      #win { position: absolute; left: 240px; top: 206px; width: 1440px; height: 790px; background: var(--white); border-radius: var(--r-win); border: 1px solid rgba(16,32,26,0.08);
+             box-shadow: 0 60px 120px -50px rgba(11,70,45,0.38), 0 14px 34px -16px rgba(16,32,26,0.16); overflow: hidden; }
+      #tbar { height: 56px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; padding: 0 22px; background: #FBFCFB; }
+      #tbar i { width: 14px; height: 14px; border-radius: 50%; background: #DCE2DE; display: block; }
+      #side { position: absolute; left: 0; top: 56px; bottom: 0; width: 88px; border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 18px; padding-top: 24px; background: #FBFCFB; }
+      #side .ni { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; color: #8A9891; }
+      #side .ni.on { background: var(--mint-lt); color: var(--em); }
+      #main { position: absolute; left: 88px; top: 56px; right: 0; bottom: 0; padding: 30px 44px 0; }
+      #hdr { height: 84px; display: flex; align-items: center; gap: 18px; }
+      #hdr h1 { font-family: "Sora", sans-serif; font-weight: 700; font-size: 44px; letter-spacing: -0.03em; }
+      #hdr .cnt { height: 40px; padding: 0 14px; border-radius: 999px; background: var(--sunk); color: var(--muted); font-size: 28px; font-weight: 500; display: flex; align-items: center; }
+      #hdr .sp { flex: 1; }
+      .btn-p { height: 60px; padding: 0 26px; border-radius: var(--r-ctl); background: var(--em); color: var(--white); font-weight: 500; font-size: 28px; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+      .btn-g { height: 60px; padding: 0 22px; border-radius: var(--r-ctl); border: 1.5px solid var(--line); color: var(--ink6); font-weight: 500; font-size: 28px; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+
+      .grid { display: grid; grid-template-columns: 64px 190px 1fr 210px 150px 170px; align-items: center; }
+      #th { height: 58px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 500; font-size: 28px; }
+      .tr { height: 72px; border-bottom: 1px solid #EEF2EF; font-size: 28px; position: relative; }
+      .tr .bgf { position: absolute; left: -44px; right: 0; top: 0; bottom: 0; background: var(--mint-lt); opacity: 0; }
+      .tr > span { position: relative; }
+      .tr .id { color: var(--muted); font-weight: 500; }
+      .tr .cl { font-weight: 500; color: var(--ink); }
+      .tr .am { text-align: right; padding-right: 36px; font-weight: 500; font-variant-numeric: tabular-nums; }
+      .tr .du { color: var(--ink6); }
+      .cb { width: 32px; height: 32px; border-radius: 9px; border: 2px solid #C5CFC9; background: var(--white); position: relative; }
+      .cb .on { position: absolute; inset: -2px; border-radius: 9px; background: var(--em); display: grid; place-items: center; opacity: 0; }
+      .st { position: relative; height: 44px; width: 128px; }
+      .pill { position: absolute; left: 0; top: 0; height: 44px; padding: 0 16px; border-radius: 999px; font-size: 28px; font-weight: 500; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+      .pill i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+      .p-draft { background: var(--draft-bg); color: var(--draft); } .p-draft i { background: #9AA79F; }
+      .p-sent { background: var(--sent-bg); color: var(--sent); } .p-sent i { background: var(--sent); }
+      .p-paid { background: var(--paid-bg); color: var(--paid); } .p-paid i { background: var(--paid); }
+
+      /* floating bulk bar */
+      #bar { position: absolute; left: 50%; bottom: 30px; margin-left: -420px; width: 840px; height: 84px; border-radius: 20px; background: var(--ink); color: var(--white);
+             display: flex; align-items: center; gap: 14px; padding: 0 14px 0 26px; box-shadow: 0 24px 50px -18px rgba(16,32,26,0.55); }
+      #bar .sel { font-size: 28px; font-weight: 500; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+      #bar .num { min-width: 44px; height: 44px; border-radius: 12px; background: #2C3D35; display: grid; place-items: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+      #bar .div { width: 1px; height: 40px; background: #34463D; margin: 0 6px; }
+      #bar .bb { height: 58px; padding: 0 20px; border-radius: 14px; font-size: 28px; font-weight: 500; display: flex; align-items: center; gap: 10px; color: #E4EBE7; white-space: nowrap; }
+      #bar #b-edit { background: #26372F; color: var(--white); }
+      #bar .x { margin-left: auto; width: 52px; height: 52px; display: grid; place-items: center; color: #93A39B; }
+      #toast { position: absolute; left: 50%; bottom: 30px; margin-left: -300px; width: 600px; height: 84px; border-radius: 20px; background: var(--ink); color: var(--white);
+               display: flex; align-items: center; justify-content: center; gap: 16px; font-size: 30px; font-weight: 500; box-shadow: 0 24px 50px -18px rgba(16,32,26,0.55); }
+      #toast .ok { width: 42px; height: 42px; border-radius: 50%; background: #5FD3A0; display: grid; place-items: center; color: var(--ink); }
+
+      /* popover */
+      #pop { position: absolute; width: 560px; background: var(--white); border-radius: var(--r-card); border: 1px solid var(--line);
+             box-shadow: 0 40px 80px -30px rgba(16,32,26,0.40), 0 8px 20px -8px rgba(16,32,26,0.14); padding: 28px; }
+      #pop .pt { font-family: "Sora", sans-serif; font-weight: 700; font-size: 32px; letter-spacing: -0.02em; }
+      #pop .lb { margin-top: 22px; font-size: 28px; color: var(--muted); font-weight: 500; }
+      #sel { margin-top: 10px; height: 68px; border-radius: var(--r-ctl); border: 1.5px solid var(--line); display: flex; align-items: center; padding: 0 12px 0 14px; position: relative; }
+      #sel.focus { border-color: var(--em); }
+      #sel .chev { margin-left: auto; color: var(--muted); }
+      #sel-v { position: relative; height: 44px; width: 140px; }
+      #apply { margin-top: 24px; height: 68px; border-radius: var(--r-ctl); background: var(--em); color: var(--white); font-size: 28px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; }
+      #menu { position: absolute; left: 28px; right: 28px; background: var(--white); border-radius: 14px; border: 1px solid var(--line); box-shadow: 0 24px 50px -20px rgba(16,32,26,0.35); padding: 8px; }
+      .opt { height: 64px; border-radius: 10px; display: flex; align-items: center; padding: 0 10px; position: relative; }
+      .opt .hv { position: absolute; inset: 0; border-radius: 10px; background: var(--sunk); opacity: 0; }
+      .opt .pill { position: relative; }
+      .opt .tick { margin-left: auto; position: relative; color: var(--em); }
+
+      #pop, #menu, #toast, #end-av .w, #end-logo, #end-url, #sv-s, .tr .pb { opacity: 0; }
+      #cursor { position: absolute; left: 0; top: 0; width: 46px; height: 46px; }
+      .ripple { position: absolute; left: 0; top: 0; width: 70px; height: 70px; margin: -35px 0 0 -35px; border-radius: 50%; border: 3px solid var(--em); opacity: 0; }
+
+      /* end card */
+      #end-av { position: absolute; left: 0; right: 0; top: 548px; text-align: center; font-size: 40px; color: var(--ink6); white-space: nowrap; }
+      #end-av b { color: var(--em); font-weight: 500; }
+      #end-logo { position: absolute; left: 0; right: 0; top: 690px; display: flex; justify-content: center; align-items: center; gap: 18px; }
+      #end-logo .wm { font-family: "Sora", sans-serif; font-weight: 700; font-size: 64px; letter-spacing: -0.04em; color: var(--ink); }
+      #end-url { position: absolute; left: 0; right: 0; top: 800px; text-align: center; font-size: 36px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="9.5" data-width="1920" data-height="1080">
+
+      <!-- ===== AUDIO ===== -->
+      <audio id="mus" src="assets/music/bgm-tech.mp3" data-start="0" data-duration="9.5" data-media-start="27.65" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":8.1,"v":1},{"t":9.5,"v":0}]}]}'></audio>
+      <audio id="sx-c1" src="assets/sfx/click-soft.mp3" data-start="0.55" data-duration="0.36" data-track-index="21" data-volume="0.25"></audio>
+      <audio id="sx-c2" src="assets/sfx/click-soft.mp3" data-start="0.9" data-duration="0.36" data-track-index="22" data-volume="0.25"></audio>
+      <audio id="sx-c3" src="assets/sfx/click-soft.mp3" data-start="1.25" data-duration="0.36" data-track-index="21" data-volume="0.25"></audio>
+      <audio id="sx-edit" src="assets/sfx/click.mp3" data-start="1.95" data-duration="0.36" data-track-index="23" data-volume="0.3"></audio>
+      <audio id="sx-sel" src="assets/sfx/click-soft.mp3" data-start="2.85" data-duration="0.36" data-track-index="21" data-volume="0.25"></audio>
+      <audio id="sx-opt" src="assets/sfx/click-soft.mp3" data-start="3.55" data-duration="0.36" data-track-index="22" data-volume="0.25"></audio>
+      <audio id="sx-apply" src="assets/sfx/click.mp3" data-start="4.3" data-duration="0.36" data-track-index="23" data-volume="0.35"></audio>
+      <audio id="sx-pop" src="assets/sfx/pop.mp3" data-start="5.05" data-duration="0.7" data-track-index="24" data-volume="0.22"></audio>
+      <audio id="sx-wh" src="assets/sfx/whoosh-short.mp3" data-start="6.45" data-duration="0.57" data-track-index="25" data-volume="0.2"></audio>
+
+      <section id="s-main" class="scene clip" data-start="0" data-duration="9.5" data-track-index="1">
+        <div id="b1" class="blob" data-layout-ignore></div>
+        <div id="b2" class="blob" data-layout-ignore></div>
+        <div id="b3" class="blob" data-layout-ignore></div>
+        <div id="grain" data-layout-ignore></div>
+
+        <div id="cam">
+          <div id="cap"><div id="cap-new"><i></i>New</div><div id="cap-t"><span class="w">Bulk-edit</span><span class="w">invoices</span></div></div>
+          <div id="win">
+            <div id="tbar"><i></i><i></i><i></i></div>
+            <div id="side">
+              <svg width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="13" fill="#0F7A55"/><rect x="13" y="22" width="5.5" height="14" rx="2.75" fill="#fff"/><rect x="21.25" y="16" width="5.5" height="20" rx="2.75" fill="#fff"/><rect x="29.5" y="11" width="5.5" height="25" rx="2.75" fill="#fff"/></svg>
+              <div class="ni" style="margin-top:14px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></div>
+              <div class="ni on"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></div>
+              <div class="ni"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M17 4a4 4 0 0 1 0 8"/><path d="M22 21a7 7 0 0 0-4-6.3"/></svg></div>
+              <div class="ni"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+              <div class="ni"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+            </div>
+            <div id="main">
+              <div id="hdr">
+                <h1>Invoices</h1><span class="cnt">48</span><span class="sp"></span>
+                <div class="btn-g"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>Filter</div>
+                <div class="btn-p"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>New invoice</div>
+              </div>
+              <div id="th" class="grid"><span></span><span>Invoice</span><span>Client</span><span style="text-align:right;padding-right:36px">Amount</span><span>Due</span><span>Status</span></div>
+              <div id="rows"></div>
+            </div>
+            <div id="bar">
+              <div class="sel"><span class="num" id="b-num">2</span>selected</div>
+              <span class="div"></span>
+              <div class="bb" id="b-edit" data-layout-allow-overlap data-layout-allow-occlusion><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Edit fields</div>
+              <div class="bb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>Send</div>
+              <div class="bb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Export</div>
+              <div class="x"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+            </div>
+            <div id="toast"><span class="ok"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>5 invoices updated</div>
+            <div id="pop" data-layout-allow-occlusion data-layout-allow-overlap>
+              <div class="pt">Edit 5 invoices</div>
+              <div class="lb">Status</div>
+              <div id="sel">
+                <div id="sel-v"><span id="sv-d" class="pill p-draft"><i></i>Draft</span><span id="sv-s" class="pill p-sent"><i></i>Sent</span></div>
+                <svg class="chev" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              <div id="apply">Apply to 5 invoices</div>
+              <div id="menu" data-layout-allow-occlusion data-layout-allow-overlap>
+                <div class="opt"><span class="hv"></span><span class="pill p-draft" data-layout-allow-overlap><i></i>Draft</span><svg class="tick" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+                <div class="opt" id="opt-sent"><span class="hv" id="opt-hv"></span><span class="pill p-sent" data-layout-allow-overlap><i></i>Sent</span></div>
+                <div class="opt"><span class="hv"></span><span class="pill p-paid" data-layout-allow-overlap><i></i>Paid</span></div>
+              </div>
+            </div>
+          </div>
+          <div id="rip1" class="ripple"></div>
+          <div id="rip2" class="ripple"></div>
+          <svg id="cursor" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.9z" fill="#10201A" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </div>
+
+
+        <div id="end-av"><span class="w">Now</span><span class="w">in</span><span class="w"><b>Tallyo</b></span><span class="w">·</span><span class="w">every</span><span class="w">plan</span></div>
+        <div id="end-logo">
+          <svg width="72" height="72" viewBox="0 0 48 48"><rect width="48" height="48" rx="13" fill="#0F7A55"/><rect x="13" y="22" width="5.5" height="14" rx="2.75" fill="#fff"/><rect x="21.25" y="16" width="5.5" height="20" rx="2.75" fill="#fff"/><rect x="29.5" y="11" width="5.5" height="25" rx="2.75" fill="#fff"/></svg>
+          <span class="wm">tallyo</span>
+        </div>
+        <div id="end-url">tallyo.app/changelog</div>
+      </section>
+    </div>
+
+    <script>
+      document.fonts.ready.then(function () {
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => Array.from(document.querySelectorAll(s));
+        const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+        const chk = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+        // ---- table data (fictional) ----
+        const data = [
+          ["INV-2041", "Northfield Studio", "$4,250.00", "Oct 15", "draft"],
+          ["INV-2042", "Bramble & Co.", "$1,180.00", "Oct 15", "draft"],
+          ["INV-2043", "Lumen Dental", "$860.00", "Oct 18", "draft"],
+          ["INV-2039", "Oakridge Supply", "$2,400.00", "Oct 02", "paid"],
+          ["INV-2044", "Harbor Yoga", "$540.00", "Oct 20", "draft"],
+          ["INV-2045", "Kettle Coffee", "$1,920.00", "Oct 20", "draft"],
+        ];
+        const lbl = { draft: "Draft", sent: "Sent", paid: "Paid" };
+        const rowsEl = $("#rows");
+        const rows = data.map(([id, cl, am, du, st]) => {
+          const r = el("div", "tr grid", `<span class="bgf"></span><span><div class="cb"><div class="on">${chk}</div></div></span><span class="id" data-layout-allow-occlusion>${id}</span><span class="cl" data-layout-allow-occlusion>${cl}</span><span class="am" data-layout-allow-occlusion>${am}</span><span class="du" data-layout-allow-occlusion>${du}</span>` +
+            `<span><div class="st"><span class="pill p-${st} pa"><i></i>${lbl[st]}</span>${st === "draft" ? '<span class="pill p-sent pb"><i></i>Sent</span>' : ""}</div></span>`);
+          rowsEl.appendChild(r);
+          return r;
+        });
+        const sel = [0, 1, 2, 4, 5];         // rows that get selected
+        const pre = [0, 1];                  // already selected at frame 0 (mid-action)
+
+        // ---- layout: popover above Edit button, menu below select ----
+        const win = $("#win");
+        const W = win.getBoundingClientRect();
+        const rel = (node) => { const r = node.getBoundingClientRect(); return { x: r.left - W.left, y: r.top - W.top, w: r.width, h: r.height, cx: r.left - W.left + r.width / 2, cy: r.top - W.top + r.height / 2 }; };
+        const edit = rel($("#b-edit")), barR = rel($("#bar"));
+        const pop = $("#pop");
+        pop.style.left = (edit.x - 30) + "px";
+        pop.style.top = (barR.y - 18 - pop.offsetHeight) + "px";
+        const menu = $("#menu");
+        menu.style.top = ($("#sel").offsetTop + $("#sel").offsetHeight + 8) + "px";
+
+        // cursor coordinates in #cam space (cam = full canvas; window at 240,206)
+        const WX = 240, WY = 206, TIP_X = 7, TIP_Y = 4;
+        const at = (node) => { const r = rel(node); return { x: WX + r.cx, y: WY + r.cy }; };
+        const cbs = rows.map((r) => r.querySelector(".cb"));
+        const P = {
+          c2: at(cbs[2]), c4: at(cbs[4]), c5: at(cbs[5]),
+          edit: at($("#b-edit")), sel: at($("#sel")), opt: at($("#opt-sent")), apply: at($("#apply")),
+          popc: at(pop),
+        };
+        const cur = (p) => ({ x: p.x - TIP_X + 4, y: p.y - TIP_Y + 2 });
+
+        // ---- timeline ----
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (s, t, o = {}) => tl.fromTo(s, { opacity: 0, y: o.y ?? 26, filter: "blur(12px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.5, stagger: o.s ?? 0.09, ease: "power3.out" }, t);
+        const click = (rip, p, t) => {
+          tl.to("#cursor", { scale: 0.86, duration: 0.07, yoyo: true, repeat: 1, transformOrigin: "15% 10%" }, t);
+          tl.fromTo(rip, { x: p.x, y: p.y, scale: 0.3, opacity: 0.8 }, { scale: 1.2, opacity: 0, duration: 0.5, ease: "power2.out", immediateRender: false }, t + 0.02);
+        };
+        const check = (i, t) => {
+          tl.fromTo(cbs[i].querySelector(".on"), { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.22, ease: "back.out(3)" }, t);
+          tl.fromTo(rows[i].querySelector(".bgf"), { opacity: 0 }, { opacity: 1, duration: 0.25 }, t);
+        };
+        const numEl = $("#b-num");
+        const setNum = (n, t) => {
+          tl.set(numEl, { textContent: String(n) }, t);
+          tl.fromTo(numEl, { scale: 1.25 }, { scale: 1, duration: 0.3, ease: "back.out(3)" }, t);
+        };
+
+        // initial states
+        pre.forEach((i) => { tl.set(cbs[i].querySelector(".on"), { opacity: 1 }, 0); tl.set(rows[i].querySelector(".bgf"), { opacity: 1 }, 0); });
+
+        // background drift
+        tl.fromTo("#b1", { x: 0, y: 0 }, { x: 120, y: 60, duration: 9.5, ease: "none" }, 0);
+        tl.fromTo("#b2", { x: 0, y: 0 }, { x: -140, y: -50, duration: 9.5, ease: "none" }, 0);
+
+        // camera settle (start mid-action: already in, tiny settle)
+        const ox = P.popc.x, oy = P.popc.y;
+        tl.set("#cam", { transformOrigin: `${ox}px ${oy}px` }, 0);
+        tl.fromTo("#cam", { scale: 1.035 }, { scale: 1, duration: 1.4, ease: "power2.out" }, 0);
+
+        // caption
+        tl.fromTo("#cap-new", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 0.1);
+        wordsIn("#cap-t .w", 0.18, { s: 0.12 });
+
+        // select rows (cursor already moving at frame 0)
+        const c0 = { x: P.c2.x + 160, y: P.c2.y - 150 };
+        tl.fromTo("#cursor", { x: cur(c0).x, y: cur(c0).y }, { x: cur(P.c2).x, y: cur(P.c2).y, duration: 0.5, ease: "power2.inOut" }, 0.02);
+        click("#rip1", P.c2, 0.55); check(2, 0.57); setNum(3, 0.6);
+        tl.to("#cursor", { x: cur(P.c4).x, y: cur(P.c4).y, duration: 0.3, ease: "power2.inOut" }, 0.6);
+        click("#rip2", P.c4, 0.9); check(4, 0.92); setNum(4, 0.95);
+        tl.to("#cursor", { x: cur(P.c5).x, y: cur(P.c5).y, duration: 0.28, ease: "power2.inOut" }, 0.95);
+        click("#rip1", P.c5, 1.25); check(5, 1.27); setNum(5, 1.3);
+
+        // to Edit fields
+        tl.to("#cursor", { x: cur(P.edit).x, y: cur(P.edit).y, duration: 0.6, ease: "power3.inOut" }, 1.35);
+        tl.to("#b-edit", { backgroundColor: "#35493F", duration: 0.15 }, 1.85);
+        click("#rip2", P.edit, 1.95);
+        tl.fromTo("#pop", { opacity: 0, y: 18, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out", transformOrigin: "20% 100%" }, 2.02);
+        // push in on popover
+        tl.to("#cam", { scale: 1.42, duration: 0.9, ease: "power3.inOut" }, 2.0);
+
+        // open select
+        tl.to("#cursor", { x: cur(P.sel).x + 40, y: cur(P.sel).y, duration: 0.55, ease: "power3.inOut" }, 2.25);
+        tl.to("#sel", { borderColor: "#0F7A55", duration: 0.15 }, 2.85);
+        click("#rip1", { x: P.sel.x + 40, y: P.sel.y }, 2.85);
+        tl.fromTo("#menu", { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" }, 2.9);
+        tl.to("#cursor", { x: cur(P.opt).x + 30, y: cur(P.opt).y, duration: 0.4, ease: "power2.inOut" }, 3.05);
+        tl.to("#opt-hv", { opacity: 1, duration: 0.12 }, 3.3);
+        click("#rip2", { x: P.opt.x + 30, y: P.opt.y }, 3.55);
+        tl.to("#menu", { opacity: 0, y: -6, duration: 0.18, ease: "power2.in" }, 3.65);
+        tl.to("#sv-d", { opacity: 0, y: -10, duration: 0.18 }, 3.62);
+        tl.fromTo("#sv-s", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.25, ease: "back.out(2.5)" }, 3.7);
+        tl.to("#sel", { borderColor: "#E3E8E4", duration: 0.3 }, 3.9);
+
+        // apply (lands on the music drop at 4.4)
+        tl.to("#cursor", { x: cur(P.apply).x, y: cur(P.apply).y, duration: 0.45, ease: "power3.inOut" }, 3.8);
+        tl.to("#apply", { backgroundColor: "#0B5E41", duration: 0.12 }, 4.22);
+        tl.to("#apply", { scale: 0.97, duration: 0.07, yoyo: true, repeat: 1 }, 4.3);
+        click("#rip1", P.apply, 4.3);
+        tl.to("#pop", { opacity: 0, y: 10, scale: 0.98, duration: 0.22, ease: "power2.in" }, 4.42);
+        tl.to("#cam", { scale: 1, duration: 0.85, ease: "power3.inOut" }, 4.4);
+        tl.to("#cursor", { x: "+=260", y: "+=140", opacity: 0, duration: 0.6, ease: "power2.in" }, 4.5);
+
+        // cascade: Draft -> Sent
+        sel.forEach((ri, k) => {
+          const t = 4.75 + k * 0.11;
+          const r = rows[ri];
+          tl.to(r.querySelector(".pa"), { opacity: 0, y: -12, duration: 0.2, ease: "power2.in" }, t);
+          tl.fromTo(r.querySelector(".pb"), { opacity: 0, y: 12, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(2.6)" }, t + 0.08);
+          tl.to(cbs[ri].querySelector(".on"), { opacity: 0, duration: 0.25 }, t + 0.35);
+          tl.to(r.querySelector(".bgf"), { opacity: 0, duration: 0.5 }, t + 0.35);
+        });
+        // bar -> toast
+        tl.to("#bar", { opacity: 0, y: 14, duration: 0.22, ease: "power2.in" }, 4.85);
+        tl.fromTo("#toast", { opacity: 0, y: 20, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2)" }, 5.05);
+        tl.fromTo("#toast .ok", { scale: 0.4 }, { scale: 1, duration: 0.4, ease: "back.out(3)" }, 5.15);
+
+        // slow drift while the result holds
+        tl.to("#win", { y: -6, duration: 1.2, ease: "sine.inOut" }, 5.1);
+
+        // ---- end card ----
+        tl.to("#toast", { opacity: 0, duration: 0.25 }, 6.3);
+        tl.to("#win", { y: 90, scale: 0.94, opacity: 0, filter: "blur(10px)", duration: 0.7, ease: "power3.in" }, 6.35);
+        tl.to("#cap-new", { opacity: 0, x: -10, duration: 0.3, ease: "power2.in" }, 6.35);
+        // caption travels to centre and grows (one continuous element)
+        const capT = $("#cap-t"), capR = capT.getBoundingClientRect(), newR = $("#cap-new").getBoundingClientRect();
+        const dx = 960 - (capR.left + capR.width / 2);
+        tl.to("#cap-t", { x: dx, y: 296, scale: 1.55, duration: 0.95, ease: "power3.inOut" }, 6.45);
+        wordsIn("#end-av .w", 7.2, { s: 0.07, y: 18 });
+        tl.fromTo("#end-logo", { opacity: 0, y: 20, filter: "blur(10px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }, 7.75);
+        tl.fromTo("#end-logo svg", { rotation: -12, scale: 0.7 }, { rotation: 0, scale: 1, duration: 0.6, ease: "back.out(2.2)" }, 7.75);
+        tl.fromTo("#end-url", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 8.05);
+
+        window.__timelines["main"] = tl;
+      });
+    </script>
+  </body>
+</html>

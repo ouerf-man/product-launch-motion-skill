@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Space Grotesk"; src: url(assets/fonts/space-grotesk-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Space Grotesk"; src: url(assets/fonts/space-grotesk-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "JetBrains Mono"; src: url(assets/fonts/JetBrainsMono-400.woff2) format("woff2"); font-weight: 400; }
+      :root {
+        --canvas: #F2F4F8; --card: #FFFFFF; --line: #E2E6EF; --sunk: #F4F6FA;
+        --ink: #0E1222; --ink7: #31374A; --ink6: #545B70;
+        --sales: #2F4BE0; --salesB: #5B74FF; --salesT: #E9EDFF;
+        --sup: #0A7A5F; --supB: #19C39A; --supT: #E3F6EF;
+        --mkt: #C8285A; --mktB: #FF5C8D; --mktT: #FDE8EF;
+        --ops: #A35A00; --opsB: #FFB020; --opsT: #FFF2DC;
+        --r-xl: 40px; --r-lg: 28px; --r-md: 18px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--canvas); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; background: var(--canvas); }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .fill { position: absolute; inset: 0; }
+      .disp { font-family: "Space Grotesk", sans-serif; font-weight: 700; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      .w { display: inline-block; margin-right: 0.24em; }
+      .w:last-child { margin-right: 0; }
+
+      /* persistent background */
+      #bg { position: absolute; inset: 0; background: var(--canvas); }
+      #grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(14,18,34,0.045) 2px, transparent 2px), linear-gradient(90deg, rgba(14,18,34,0.045) 2px, transparent 2px); background-size: 90px 90px; background-position: 0 0; }
+      #wheel { position: absolute; left: 90px; top: 1330px; width: 900px; height: 900px; opacity: 0.9; }
+      #glow { position: absolute; left: -200px; top: 1150px; width: 1480px; height: 1000px; border-radius: 50%; background: radial-gradient(closest-side, rgba(91,116,255,0.28), rgba(91,116,255,0)); }
+
+      /* hook */
+      #h-mark { position: absolute; left: 400px; top: 350px; width: 280px; height: 280px; }
+      #h-l1, #h-l2 { position: absolute; left: 0; right: 0; text-align: center; font-size: 104px; line-height: 1; letter-spacing: -0.03em; white-space: nowrap; }
+      #h-l1 { top: 760px; }
+      #h-l2 { top: 890px; }
+      #h-dots { position: absolute; left: 0; right: 0; top: 1060px; display: flex; justify-content: center; gap: 18px; }
+      #h-dots span { display: block; height: 64px; padding: 0 26px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 30px; line-height: 64px; }
+
+      /* vignette */
+      .vg { position: absolute; inset: 0; }
+      .vg .top { position: absolute; left: 120px; right: 120px; top: 290px; display: flex; align-items: center; justify-content: space-between; }
+      .chip { height: 84px; padding: 0 34px 0 18px; border-radius: 999px; color: #fff; display: flex; align-items: center; gap: 16px; font-weight: 700; font-size: 40px; letter-spacing: -0.01em; }
+      .chip .ico { width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,0.22); display: grid; place-items: center; }
+      .idx { font-size: 30px; color: var(--ink6); }
+      .prompt { position: absolute; left: 120px; right: 120px; top: 420px; min-height: 188px; background: var(--card); border-radius: var(--r-xl); border: 2px solid var(--line); box-shadow: 0 30px 60px -30px rgba(14,18,34,0.28); padding: 34px 120px 34px 36px; }
+      .prompt .lbl { font-size: 28px; color: var(--ink6); font-weight: 500; display: flex; align-items: center; gap: 12px; }
+      .prompt .lbl svg { width: 34px; height: 34px; }
+      .prompt .tx { margin-top: 12px; font-size: 48px; font-weight: 500; letter-spacing: -0.015em; line-height: 1.15; min-height: 56px; }
+      .caret { display: inline-block; width: 4px; height: 50px; margin-left: 4px; vertical-align: -8px; border-radius: 2px; }
+      .send { position: absolute; right: 26px; bottom: 26px; width: 80px; height: 80px; border-radius: 50%; display: grid; place-items: center; }
+      .status { position: absolute; left: 140px; right: 120px; top: 650px; height: 50px; display: flex; align-items: center; gap: 14px; font-size: 32px; font-weight: 500; color: var(--ink7); }
+      .status .sp { width: 30px; height: 30px; border-radius: 50%; border: 4px solid var(--line); }
+      .status .ok { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; position: absolute; left: 0; }
+      .status .st1, .status .st2 { position: absolute; left: 52px; white-space: nowrap; }
+      .result { position: absolute; left: 120px; right: 120px; top: 740px; background: var(--card); border-radius: var(--r-xl); border: 2px solid var(--line); box-shadow: 0 50px 90px -40px rgba(14,18,34,0.4); overflow: hidden; }
+      .result .bar { height: 12px; }
+      .result .in { padding: 36px 40px 40px; }
+      .result .kicker { font-size: 28px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+      .result .ttl { margin-top: 10px; font-size: 44px; line-height: 1.1; letter-spacing: -0.02em; }
+      .result .meta { margin-top: 10px; font-size: 28px; color: var(--ink6); }
+      .result .lines { margin-top: 24px; display: flex; flex-direction: column; gap: 14px; }
+      .result .ln { font-size: 34px; line-height: 1.25; color: var(--ink7); display: flex; gap: 16px; align-items: flex-start; }
+      .result .ln b { font-weight: 700; color: var(--ink); }
+      .result .ln .n { flex: none; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-family: "Space Grotesk"; font-weight: 700; font-size: 30px; }
+      .result .ln .av { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 24px; }
+      .result .ln .dt { margin-left: auto; color: var(--ink6); font-size: 30px; white-space: nowrap; padding-top: 6px; }
+      .result .ln .nm { padding-top: 6px; }
+      .result .acts { margin-top: 30px; display: flex; gap: 14px; }
+      .btn { height: 70px; padding: 0 30px; border-radius: 999px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 30px; white-space: nowrap; }
+      .btn.ghost { border: 2px solid var(--line); color: var(--ink7); }
+      .tag { display: inline-flex; height: 48px; padding: 0 18px; border-radius: 999px; align-items: center; font-size: 28px; font-weight: 700; margin-right: 10px; }
+
+      /* recap */
+      #rc-h { position: absolute; left: 0; right: 0; top: 290px; text-align: center; font-size: 84px; line-height: 1; letter-spacing: -0.03em; white-space: nowrap; }
+      #rc-grid { position: absolute; left: 120px; top: 440px; width: 840px; display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+      .mini { height: 360px; background: var(--card); border-radius: var(--r-lg); border: 2px solid var(--line); box-shadow: 0 30px 60px -30px rgba(14,18,34,0.3); overflow: hidden; position: relative; }
+      .mini .bar { height: 12px; }
+      .mini .in { padding: 26px 28px; }
+      .mini .rl { display: inline-flex; height: 52px; padding: 0 20px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 28px; align-items: center; }
+      .mini .tt { margin-top: 20px; font-family: "Space Grotesk"; font-weight: 700; font-size: 38px; line-height: 1.1; letter-spacing: -0.02em; }
+      .mini .sk { margin-top: 22px; display: flex; flex-direction: column; gap: 14px; }
+      .mini .sk i { display: block; height: 14px; border-radius: 7px; background: #E7EAF1; }
+      .mini .dn { position: absolute; right: 24px; top: 34px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
+
+      /* end */
+      #e-bg { position: absolute; inset: 0; background: var(--ink); }
+      #e-tag { position: absolute; left: 0; right: 0; top: 420px; text-align: center; color: #fff; font-size: 104px; line-height: 1.02; letter-spacing: -0.03em; }
+      #e-tag .row { display: block; white-space: nowrap; }
+      #e-avail { position: absolute; left: 0; right: 0; top: 680px; text-align: center; font-size: 40px; color: #C9CEDD; font-weight: 500; }
+      #e-lock { position: absolute; left: 0; right: 0; top: 850px; display: flex; justify-content: center; align-items: center; gap: 26px; }
+      #e-mark { width: 130px; height: 130px; }
+      #e-lock .wm { color: #fff; font-size: 112px; letter-spacing: -0.035em; line-height: 1; }
+      #e-cta { position: absolute; left: 0; right: 0; top: 1060px; display: flex; justify-content: center; }
+      #e-cta .pill { height: 96px; padding: 0 48px; border-radius: 999px; background: #fff; color: var(--ink); font-weight: 700; font-size: 44px; display: flex; align-items: center; gap: 16px; }
+      #e-spokes { position: absolute; left: 0; right: 0; top: 1220px; display: flex; justify-content: center; gap: 14px; }
+      #e-spokes i { display: block; width: 90px; height: 12px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="24" data-width="1080" data-height="1920">
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="mus" src="assets/music/bgm-ad.mp3" data-start="0" data-duration="24" data-media-start="12.6" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":22.6,"v":1},{"t":24,"v":0}]}]}'></audio>
+      <audio id="sx0" src="assets/sfx/whoosh-short.mp3" data-start="0.1" data-duration="0.57" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx1" src="assets/sfx/pop.mp3" data-start="0.55" data-duration="0.7" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx2" src="assets/sfx/click-soft.mp3" data-start="1.0" data-duration="0.36" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx3" src="assets/sfx/click-soft.mp3" data-start="1.45" data-duration="0.36" data-track-index="24" data-volume="0.16"></audio>
+      <audio id="sx4" src="assets/sfx/click-soft.mp3" data-start="1.55" data-duration="0.36" data-track-index="25" data-volume="0.16"></audio>
+      <audio id="sx5" src="assets/sfx/click-soft.mp3" data-start="1.65" data-duration="0.36" data-track-index="27" data-volume="0.16"></audio>
+      <audio id="sx6" src="assets/sfx/click-soft.mp3" data-start="1.75" data-duration="0.36" data-track-index="28" data-volume="0.16"></audio>
+      <audio id="sx7" src="assets/sfx/whoosh-short.mp3" data-start="2.6" data-duration="0.57" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx8" src="assets/sfx/typing.mp3" data-start="3.05" data-duration="1.1" data-track-index="26" data-volume="0.16"></audio>
+      <audio id="sx9" src="assets/sfx/click.mp3" data-start="4.2" data-duration="0.36" data-track-index="22" data-volume="0.35"></audio>
+      <audio id="sx10" src="assets/sfx/pop.mp3" data-start="4.85" data-duration="0.7" data-track-index="23" data-volume="0.24"></audio>
+      <audio id="sx11" src="assets/sfx/click-soft.mp3" data-start="5.2" data-duration="0.36" data-track-index="24" data-volume="0.16"></audio>
+      <audio id="sx12" src="assets/sfx/click-soft.mp3" data-start="5.48" data-duration="0.36" data-track-index="25" data-volume="0.16"></audio>
+      <audio id="sx13" src="assets/sfx/whoosh-short.mp3" data-start="6.8" data-duration="0.57" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx14" src="assets/sfx/typing.mp3" data-start="7.25" data-duration="1.1" data-track-index="26" data-volume="0.16"></audio>
+      <audio id="sx15" src="assets/sfx/click.mp3" data-start="8.4" data-duration="0.36" data-track-index="22" data-volume="0.35"></audio>
+      <audio id="sx16" src="assets/sfx/pop.mp3" data-start="9.05" data-duration="0.7" data-track-index="23" data-volume="0.24"></audio>
+      <audio id="sx17" src="assets/sfx/click-soft.mp3" data-start="9.4" data-duration="0.36" data-track-index="24" data-volume="0.16"></audio>
+      <audio id="sx18" src="assets/sfx/click-soft.mp3" data-start="9.68" data-duration="0.36" data-track-index="25" data-volume="0.16"></audio>
+      <audio id="sx19" src="assets/sfx/whoosh-short.mp3" data-start="11.0" data-duration="0.57" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx20" src="assets/sfx/typing.mp3" data-start="11.45" data-duration="1.1" data-track-index="26" data-volume="0.16"></audio>
+      <audio id="sx21" src="assets/sfx/click.mp3" data-start="12.6" data-duration="0.36" data-track-index="22" data-volume="0.35"></audio>
+      <audio id="sx22" src="assets/sfx/pop.mp3" data-start="13.25" data-duration="0.7" data-track-index="23" data-volume="0.24"></audio>
+      <audio id="sx23" src="assets/sfx/click-soft.mp3" data-start="13.6" data-duration="0.36" data-track-index="24" data-volume="0.16"></audio>
+      <audio id="sx24" src="assets/sfx/click-soft.mp3" data-start="13.88" data-duration="0.36" data-track-index="25" data-volume="0.16"></audio>
+      <audio id="sx25" src="assets/sfx/whoosh-short.mp3" data-start="15.2" data-duration="0.57" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx26" src="assets/sfx/typing.mp3" data-start="15.65" data-duration="1.1" data-track-index="26" data-volume="0.16"></audio>
+      <audio id="sx27" src="assets/sfx/click.mp3" data-start="16.8" data-duration="0.36" data-track-index="22" data-volume="0.35"></audio>
+      <audio id="sx28" src="assets/sfx/pop.mp3" data-start="17.45" data-duration="0.7" data-track-index="23" data-volume="0.24"></audio>
+      <audio id="sx29" src="assets/sfx/click-soft.mp3" data-start="17.8" data-duration="0.36" data-track-index="24" data-volume="0.16"></audio>
+      <audio id="sx30" src="assets/sfx/click-soft.mp3" data-start="18.08" data-duration="0.36" data-track-index="25" data-volume="0.16"></audio>
+      <audio id="sx31" src="assets/sfx/whoosh.mp3" data-start="19.4" data-duration="0.57" data-track-index="21" data-volume="0.26"></audio>
+      <audio id="sx32" src="assets/sfx/click-soft.mp3" data-start="19.6" data-duration="0.36" data-track-index="24" data-volume="0.2"></audio>
+      <audio id="sx33" src="assets/sfx/click-soft.mp3" data-start="19.72" data-duration="0.36" data-track-index="25" data-volume="0.2"></audio>
+      <audio id="sx34" src="assets/sfx/click-soft.mp3" data-start="19.84" data-duration="0.36" data-track-index="27" data-volume="0.2"></audio>
+      <audio id="sx35" src="assets/sfx/click-soft.mp3" data-start="19.96" data-duration="0.36" data-track-index="28" data-volume="0.2"></audio>
+      <audio id="sx36" src="assets/sfx/whoosh.mp3" data-start="21.5" data-duration="0.57" data-track-index="21" data-volume="0.26"></audio>
+      <audio id="sx37" src="assets/sfx/pop.mp3" data-start="22.55" data-duration="0.7" data-track-index="22" data-volume="0.24"></audio>
+
+      <!-- persistent background -->
+      <div id="bgl" class="scene clip" data-start="0" data-duration="21.5" data-track-index="0" style="z-index:0">
+        <div id="bg"></div>
+        <div id="grid"></div>
+        <div id="glow" data-layout-allow-overflow></div>
+        <svg id="wheel" data-layout-allow-overflow viewBox="0 0 120 120"><g id="wheel-g">
+          <circle cx="60" cy="60" r="34" fill="none" stroke="#0E1222" stroke-opacity="0.08" stroke-width="10"/>
+          <line x1="60" y1="60" x2="60" y2="6" stroke="#5B74FF" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"/>
+          <line x1="60" y1="60" x2="114" y2="60" stroke="#19C39A" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"/>
+          <line x1="60" y1="60" x2="60" y2="114" stroke="#FF5C8D" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"/>
+          <line x1="60" y1="60" x2="6" y2="60" stroke="#FFB020" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"/>
+        </g></svg>
+      </div>
+
+      <!-- ================= HOOK 0–2.75 ================= -->
+      <section id="s-hook" class="scene clip" data-start="0" data-duration="2.75" data-track-index="1" style="z-index:2">
+        <div id="h-wrap" class="fill">
+          <svg id="h-mark" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="34" fill="none" stroke="#0E1222" stroke-width="11"/>
+            <line class="hs" x1="60" y1="60" x2="60" y2="8" stroke="#5B74FF" stroke-width="11" stroke-linecap="round"/>
+            <line class="hs" x1="60" y1="60" x2="112" y2="60" stroke="#19C39A" stroke-width="11" stroke-linecap="round"/>
+            <line class="hs" x1="60" y1="60" x2="60" y2="112" stroke="#FF5C8D" stroke-width="11" stroke-linecap="round"/>
+            <line class="hs" x1="60" y1="60" x2="8" y2="60" stroke="#FFB020" stroke-width="11" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="13" fill="#0E1222"/>
+          </svg>
+          <div id="h-l1" class="disp"><span class="w">One</span><span class="w">assistant.</span></div>
+          <div id="h-l2" class="disp"><span class="w">Every</span><span class="w" style="color:var(--sales)">team.</span></div>
+          <div id="h-dots"><span style="background:var(--sales)">Sales</span><span style="background:var(--sup)">Support</span><span style="background:var(--mkt)">Marketing</span><span style="background:var(--ops)">Ops</span></div>
+        </div>
+      </section>
+
+      <!-- ================= VIGNETTES ================= -->
+      <section id="s-v0" class="scene clip" data-start="2.6" data-duration="4.35" data-track-index="2" style="z-index:3"><div class="vg" id="vg0"></div></section>
+      <section id="s-v1" class="scene clip" data-start="6.8" data-duration="4.35" data-track-index="3" style="z-index:4"><div class="vg" id="vg1"></div></section>
+      <section id="s-v2" class="scene clip" data-start="11.0" data-duration="4.35" data-track-index="4" style="z-index:5"><div class="vg" id="vg2"></div></section>
+      <section id="s-v3" class="scene clip" data-start="15.2" data-duration="4.35" data-track-index="5" style="z-index:6"><div class="vg" id="vg3"></div></section>
+
+      <!-- ================= RECAP 19.4–21.6 ================= -->
+      <section id="s-rc" class="scene clip" data-start="19.4" data-duration="2.25" data-track-index="6" style="z-index:7">
+        <div id="rc-wrap" class="fill">
+          <div id="rc-h" class="disp"><span class="w">Four</span><span class="w">teams.</span><span class="w">One</span><span class="w">Helmo.</span></div>
+          <div id="rc-grid"></div>
+        </div>
+      </section>
+
+      <!-- ================= END 21.5–24 ================= -->
+      <section id="s-end" class="scene clip" data-start="21.5" data-duration="2.5" data-track-index="7" style="z-index:8">
+        <div id="e-bg"></div>
+        <div id="e-tag" class="disp"><span class="row"><span class="w">AI</span><span class="w">that</span><span class="w">works</span></span><span class="row"><span class="w">for</span><span class="w">every</span><span class="w">team.</span></span></div>
+        <div id="e-avail">Available today · Free 14-day trial</div>
+        <div id="e-lock">
+          <svg id="e-mark" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="34" fill="none" stroke="#FFFFFF" stroke-width="11"/>
+            <line x1="60" y1="60" x2="60" y2="8" stroke="#5B74FF" stroke-width="11" stroke-linecap="round"/>
+            <line x1="60" y1="60" x2="112" y2="60" stroke="#19C39A" stroke-width="11" stroke-linecap="round"/>
+            <line x1="60" y1="60" x2="60" y2="112" stroke="#FF5C8D" stroke-width="11" stroke-linecap="round"/>
+            <line x1="60" y1="60" x2="8" y2="60" stroke="#FFB020" stroke-width="11" stroke-linecap="round"/>
+            <circle cx="60" cy="60" r="13" fill="#FFFFFF"/>
+          </svg>
+          <div class="wm disp">Helmo</div>
+        </div>
+        <div id="e-cta"><div class="pill">Try it at helmo.ai</div></div>
+        <div id="e-spokes"><i style="background:#5B74FF"></i><i style="background:#19C39A"></i><i style="background:#FF5C8D"></i><i style="background:#FFB020"></i></div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+        const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+        const chk = (c, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+        const markSm = '<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="34" fill="none" stroke="#0E1222" stroke-width="12"/><line x1="60" y1="60" x2="60" y2="8" stroke="#5B74FF" stroke-width="12" stroke-linecap="round"/><line x1="60" y1="60" x2="112" y2="60" stroke="#19C39A" stroke-width="12" stroke-linecap="round"/><line x1="60" y1="60" x2="60" y2="112" stroke="#FF5C8D" stroke-width="12" stroke-linecap="round"/><line x1="60" y1="60" x2="8" y2="60" stroke="#FFB020" stroke-width="12" stroke-linecap="round"/><circle cx="60" cy="60" r="14" fill="#0E1222"/></svg>';
+        const icons = {
+          sales: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
+          sup: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3z"/><path d="M3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>',
+          mkt: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8v18L3 13z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>',
+          ops: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>',
+        };
+        const V = [
+          { k: "sales", role: "Sales", dark: "#2F4BE0", bright: "#5B74FF", tint: "#E9EDFF", glow: "rgba(91,116,255,0.30)",
+            prompt: "Draft a follow-up for Acme.", st: "Drafting email…", done: "Draft ready · 3 s",
+            kicker: "Email draft", ttl: "Re: Pilot next steps", meta: "To Dana Ruiz · Acme Co.",
+            lines: ["Great call today, Dana.", "Pricing for 40 seats attached.", "Free Thursday at 2 PM?"], kind: "plain",
+            acts: ["Send", "Edit"], mini: "Follow-up email" },
+          { k: "sup", role: "Support", dark: "#0A7A5F", bright: "#19C39A", tint: "#E3F6EF", glow: "rgba(25,195,154,0.30)",
+            prompt: "Summarize ticket #4821.", st: "Reading 14 messages…", done: "Summary ready · 2 s",
+            kicker: "Ticket #4821", ttl: "Charged twice in March", meta: "Billing · Priority high",
+            lines: ["Customer is frustrated, not leaving.", "Refund already approved.", "Reply drafted, ready to send."], kind: "check",
+            acts: ["Send reply", "Open"], mini: "Ticket summary" },
+          { k: "mkt", role: "Marketing", dark: "#C8285A", bright: "#FF5C8D", tint: "#FDE8EF", glow: "rgba(255,92,141,0.30)",
+            prompt: "3 headlines for our launch post.", st: "Writing options…", done: "3 options · 4 s",
+            kicker: "Launch headlines", ttl: "Pick a favorite", meta: "Tone: bold · 8 words max",
+            lines: ["Less busywork. More launches.", "Your team’s new favorite teammate.", "Ship the plan, not the meeting."], kind: "num",
+            acts: ["Use #1", "More like this"], mini: "Launch headlines" },
+          { k: "ops", role: "Ops", dark: "#A35A00", bright: "#FFB020", tint: "#FFF2DC", glow: "rgba(255,176,32,0.32)",
+            prompt: "Who’s out next week?", st: "Checking calendars…", done: "Coverage checked · 2 s",
+            kicker: "Out next week", ttl: "3 people · coverage OK", meta: "From HR calendar",
+            lines: [["PS", "Priya S.", "Mon–Tue", "#6B4BD8"], ["ML", "Marco L.", "Wed", "#0F7C91"], ["JK", "Jin K.", "Thu–Fri", "#B5367A"]], kind: "people",
+            acts: ["Share in #ops", "Open calendar"], mini: "Team time off" },
+        ];
+
+        // ---------- build vignettes ----------
+        V.forEach((v, i) => {
+          const r = $("#vg" + i);
+          const top = el("div", "top", `<div class="chip" style="background:${v.dark}"><span class="ico">${icons[v.k]}</span>For ${v.role}</div><span class="idx mono">0${i + 1} / 04</span>`);
+          const pr = el("div", "prompt", `<div class="lbl">${markSm}Ask Helmo</div><div class="tx"><span class="typed"></span><span class="caret" style="background:${v.dark}"></span></div><div class="send" style="background:${v.dark}"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg></div>`);
+          const st = el("div", "status", `<span class="sp" style="border-top-color:${v.dark}"></span><span class="ok" style="background:${v.dark}">${chk("#fff", 22)}</span><span class="st1">${v.st}</span><span class="st2" style="color:${v.dark}">${v.done}</span>`);
+          let lines = "";
+          v.lines.forEach((ln, j) => {
+            if (v.kind === "plain") lines += `<div class="ln">${ln}</div>`;
+            if (v.kind === "check") lines += `<div class="ln"><span class="n" style="background:${v.tint}">${chk(v.dark, 26)}</span><span style="padding-top:4px">${ln}</span></div>`;
+            if (v.kind === "num") lines += `<div class="ln"><span class="n" style="background:${v.tint};color:${v.dark}">${j + 1}</span><span style="padding-top:4px">${ln}</span></div>`;
+            if (v.kind === "people") lines += `<div class="ln"><span class="av" style="background:${ln[3]}">${ln[0]}</span><b class="nm">${ln[1]}</b><span class="dt">${ln[2]}</span></div>`;
+          });
+          const res = el("div", "result", `<div class="bar" style="background:${v.bright}"></div><div class="in"><div class="kicker" style="color:${v.dark}">${v.kicker}</div><div class="ttl disp">${v.ttl}</div><div class="meta">${v.meta}</div><div class="lines">${lines}</div><div class="acts"><div class="btn" style="background:${v.dark};color:#fff">${v.acts[0]}</div><div class="btn ghost">${v.acts[1]}</div></div></div>`);
+          r.append(top, pr, st, res);
+          v.el = { r, top, pr, st, res, typed: pr.querySelector(".typed"), caret: pr.querySelector(".caret"), send: pr.querySelector(".send") };
+        });
+
+        // ---------- recap minis ----------
+        const minis = V.map((v) => {
+          const m = el("div", "mini", `<div class="bar" style="background:${v.bright}"></div><div class="in"><span class="rl" style="background:${v.dark}">${v.role}</span><div class="tt">${v.mini}</div><div class="sk"><i style="width:92%"></i><i style="width:74%"></i><i style="width:84%"></i><i style="width:56%"></i></div></div><span class="dn" style="background:${v.tint}">${chk(v.dark, 24)}</span>`);
+          $("#rc-grid").appendChild(m); return m;
+        });
+
+        // ---------- sfx ----------
+
+        // ---------- timeline ----------
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (sel, at, o = {}) => tl.fromTo(sel, { opacity: 0, y: o.y ?? 44, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.5, stagger: o.s ?? 0.09, ease: "power3.out" }, at);
+
+        tl.fromTo("#wheel-g", { rotation: 0, svgOrigin: "60 60" }, { rotation: 140, svgOrigin: "60 60", duration: 21.5, ease: "none" }, 0);
+        tl.fromTo("#grid", { y: 0 }, { y: -180, duration: 21.5, ease: "none" }, 0);
+
+        // HOOK
+        tl.fromTo("#h-mark", { scale: 0.3, rotation: -120, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.8, ease: "back.out(1.6)" }, 0.1);
+        tl.fromTo("#h-mark .hs", { opacity: 0 }, { opacity: 1, duration: 0.2, stagger: 0.08 }, 0.2);
+        wordsIn("#h-l1 .w", 0.45, { s: 0.12 });
+        wordsIn("#h-l2 .w", 1.0, { s: 0.14 });
+        tl.fromTo("#h-dots span", { opacity: 0, y: 24, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, stagger: 0.1, ease: "back.out(2)" }, 1.45);
+        tl.to("#h-wrap", { y: -120, opacity: 0, filter: "blur(10px)", duration: 0.4, ease: "power3.in" }, 2.4);
+
+        // VIGNETTES
+        const starts = [2.6, 6.8, 11.0, 15.2];
+        V.forEach((v, i) => {
+          const T = starts[i], E = v.el;
+          // background shift
+          tl.to("#bg", { backgroundColor: v.tint, duration: 0.5, ease: "power2.inOut" }, T);
+          tl.to("#glow", { background: `radial-gradient(closest-side, ${v.glow}, rgba(255,255,255,0))`, duration: 0.5 }, T);
+          // in
+          tl.fromTo(E.top, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, T + 0.1);
+          tl.fromTo(E.pr, { opacity: 0, y: 80, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" }, T + 0.2);
+          const o = { n: 0 }, full = v.prompt;
+          tl.set(E.typed, { textContent: "" }, 0);
+          tl.to(o, { n: full.length, duration: 1.05, ease: "none", onUpdate: () => { E.typed.textContent = full.slice(0, Math.round(o.n)); } }, T + 0.45);
+          tl.fromTo(E.caret, { opacity: 1 }, { opacity: 0, duration: 0.01, repeat: 7, yoyo: true, repeatDelay: 0.24 }, T + 1.5);
+          tl.to(E.send, { scale: 0.86, duration: 0.08, yoyo: true, repeat: 1 }, T + 1.6);
+          tl.fromTo(E.st, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.3 }, T + 1.68);
+          tl.set(E.st.querySelector(".ok"), { opacity: 0, scale: 0.4 }, 0);
+          tl.set(E.st.querySelector(".st2"), { opacity: 0 }, 0);
+          tl.fromTo(E.st.querySelector(".sp"), { rotation: 0 }, { rotation: 540, duration: 0.6, ease: "none" }, T + 1.68);
+          tl.to([E.st.querySelector(".sp"), E.st.querySelector(".st1")], { opacity: 0, duration: 0.15 }, T + 2.25);
+          tl.to(E.st.querySelector(".ok"), { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(3)" }, T + 2.3);
+          tl.to(E.st.querySelector(".st2"), { opacity: 1, duration: 0.2 }, T + 2.32);
+          tl.fromTo(E.res, { opacity: 0, y: 90, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "power3.out" }, T + 2.2);
+          tl.fromTo($$(".kicker, .ttl, .meta", E.res), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.07, ease: "power3.out" }, T + 2.35);
+          tl.fromTo($$(".ln", E.res), { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.35, stagger: 0.14, ease: "power3.out" }, T + 2.55);
+          tl.fromTo($$(".btn", E.res), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.08 }, T + 3.0);
+          tl.fromTo(E.r, { scale: 1 }, { scale: 1.025, transformOrigin: "50% 40%", duration: 4.2, ease: "none" }, T);
+          // out
+          tl.to(E.r, { y: -140, opacity: 0, filter: "blur(10px)", duration: 0.35, ease: "power3.in" }, T + 3.95);
+          // sfx
+        });
+
+        // RECAP
+        tl.to("#bg", { backgroundColor: "#F2F4F8", duration: 0.5 }, 19.4);
+        tl.to("#glow", { background: "radial-gradient(closest-side, rgba(91,116,255,0.24), rgba(255,255,255,0))", duration: 0.5 }, 19.4);
+        wordsIn("#rc-h .w", 19.45, { s: 0.1, y: 36 });
+        tl.fromTo(minis, { opacity: 0, scale: 0.6, y: 120 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, stagger: 0.12, ease: "back.out(1.5)" }, 19.55);
+        tl.fromTo($$(".dn", $("#rc-grid")), { scale: 0 }, { scale: 1, duration: 0.3, stagger: 0.12, ease: "back.out(3)" }, 20.05);
+        tl.fromTo("#rc-wrap", { scale: 1 }, { scale: 1.03, duration: 2.2, ease: "none" }, 19.4);
+
+        // END
+        tl.fromTo("#e-bg", { clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(80% at 50% 50%)", duration: 0.6, ease: "expo.out" }, 21.5);
+        wordsIn("#e-tag .w", 21.65, { s: 0.08, y: 40 });
+        tl.fromTo("#e-avail", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4 }, 22.25);
+        tl.fromTo("#e-mark", { scale: 0, rotation: -140 }, { scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.6)" }, 22.5);
+        tl.fromTo("#e-lock .wm", { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 22.6);
+        tl.fromTo("#e-cta", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 22.8);
+        tl.fromTo("#e-spokes i", { scaleX: 0 }, { scaleX: 1, duration: 0.35, stagger: 0.07, ease: "power3.out" }, 22.9);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

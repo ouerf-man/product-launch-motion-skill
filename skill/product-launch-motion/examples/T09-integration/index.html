@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Sora"; src: url(assets/fonts/sora-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Sora"; src: url(assets/fonts/sora-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Space Grotesk"; src: url(assets/fonts/space-grotesk-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+
+      /* ===== Tallyo brand system (identical to T04) ===== */
+      :root {
+        --paper: #F4F6F1; --ink: #10201A; --ink6: #3C4A43; --muted: #56665E; --line: #E3E8E4; --sunk: #F3F6F3; --white: #FFFFFF;
+        --em: #0F7A55; --em-dk: #0B5E41; --mint: #CFF1E0; --mint-lt: #EFFAF4; --peach: #FFD9C2; --coral: #E8693A;
+        --sent: #2B50C8; --sent-bg: #E6ECFF; --paid: #0F7A55; --paid-bg: #DDF4E8; --draft: #56665E; --draft-bg: #EDF1EE;
+        --r-win: 24px; --r-card: 18px; --r-ctl: 12px;
+        /* ===== Coinlane (partner) ===== */
+        --cl-navy: #161A3D; --cl-navy2: #232850; --cl-orange: #FF6A2B; --cl-mute: #AEB3D6;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1080px; overflow: hidden; background: var(--paper); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+      .scene { position: absolute; inset: 0; overflow: hidden; background: var(--paper); }
+      .w { display: inline-block; margin-right: 0.26em; }
+      .w:last-child { margin-right: 0; }
+
+      /* co-branded soft gradient: Tallyo mint + Coinlane orange */
+      .blob { position: absolute; border-radius: 50%; filter: blur(90px); }
+      #b1 { left: -320px; top: -300px; width: 820px; height: 760px; background: #BFEBD5; opacity: 0.95; }
+      #b2 { left: 560px; top: 600px; width: 820px; height: 720px; background: #FFC9AE; opacity: 0.85; }
+      #grain { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(16,32,26,0.06) 1.2px, transparent 1.6px); background-size: 30px 30px; }
+
+      /* lockup */
+      #lock { position: absolute; left: 0; right: 0; top: 486px; height: 108px; display: flex; align-items: center; justify-content: center; gap: 34px; }
+      .lk { display: flex; align-items: center; gap: 16px; }
+      .wm-t { font-family: "Sora", sans-serif; font-weight: 700; font-size: 66px; letter-spacing: -0.04em; color: var(--ink); }
+      .wm-c { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 64px; letter-spacing: -0.03em; color: var(--cl-navy); }
+      #lk-x { width: 44px; height: 44px; }
+      #eyebrow { position: absolute; left: 0; right: 0; top: 388px; display: flex; justify-content: center; }
+      #eyebrow span { height: 52px; padding: 0 22px; border-radius: 999px; background: var(--white); border: 1px solid var(--line); font-size: 28px; font-weight: 500; color: var(--ink6); display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 24px -14px rgba(16,32,26,0.3); }
+      #eyebrow i { width: 10px; height: 10px; border-radius: 50%; background: var(--em); display: block; }
+
+      /* headline */
+      #hl { position: absolute; left: 0; right: 0; top: 226px; text-align: center; font-family: "Sora", sans-serif; font-weight: 700; font-size: 74px; letter-spacing: -0.04em; line-height: 1; white-space: nowrap; }
+      #hl .em { color: var(--em); }
+
+      /* Tallyo invoice card */
+      #inv { position: absolute; left: 150px; top: 380px; width: 780px; height: 556px; background: var(--white); border-radius: var(--r-win); border: 1px solid rgba(16,32,26,0.08);
+             box-shadow: 0 50px 100px -40px rgba(11,70,45,0.38), 0 12px 30px -14px rgba(16,32,26,0.16); padding: 40px 44px; }
+      .row { display: flex; align-items: center; gap: 14px; }
+      #inv .no { font-family: "Sora", sans-serif; font-weight: 700; font-size: 34px; letter-spacing: -0.02em; }
+      #inv .sp { flex: 1; }
+      .lbl { font-size: 28px; color: var(--muted); font-weight: 500; }
+      #inv .who { font-size: 36px; font-weight: 500; margin-top: 4px; }
+      #inv .amt { margin-top: 8px; font-family: "Sora", sans-serif; font-weight: 700; font-size: 84px; letter-spacing: -0.045em; line-height: 1.12; font-variant-numeric: tabular-nums; }
+      .st { position: relative; height: 48px; width: 132px; }
+      .pill { position: absolute; right: 0; top: 0; height: 48px; padding: 0 18px; border-radius: 999px; font-size: 28px; font-weight: 500; display: flex; align-items: center; gap: 9px; white-space: nowrap; }
+      .pill i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+      .p-sent { background: var(--sent-bg); color: var(--sent); } .p-sent i { background: var(--sent); }
+      .p-paid { background: var(--paid-bg); color: var(--paid); } .p-paid i { background: var(--paid); }
+      #inv-act { position: relative; height: 92px; margin-top: 34px; }
+      #pay-btn { position: absolute; inset: 0; border-radius: 16px; background: var(--cl-navy); color: var(--white); display: flex; align-items: center; justify-content: center; gap: 16px; font-size: 32px; font-weight: 500; }
+      #paid-row { position: absolute; inset: 0; border-radius: 16px; background: var(--mint-lt); border: 1.5px solid var(--mint); color: var(--em-dk); display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 30px; font-weight: 500; opacity: 0; }
+      #paid-row .ck { width: 44px; height: 44px; border-radius: 50%; background: var(--em); color: var(--white); display: grid; place-items: center; }
+      #ring { position: absolute; left: -10px; right: -10px; top: -10px; bottom: -10px; border-radius: 24px; border: 3px solid var(--em); opacity: 0; }
+
+      /* Coinlane checkout sheet */
+      #sheet { position: absolute; left: 180px; top: 452px; width: 720px; background: var(--cl-navy); border-radius: 28px; padding: 38px 40px 40px; color: var(--white);
+               box-shadow: 0 60px 120px -40px rgba(22,26,61,0.65), 0 14px 30px -14px rgba(22,26,61,0.4); opacity: 0; }
+      #sheet .hd .wm { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 38px; letter-spacing: -0.03em; }
+      #sheet .hd .sec { margin-left: auto; font-size: 28px; color: var(--cl-mute); display: flex; align-items: center; gap: 8px; }
+      #sheet .ml { margin-top: 30px; font-size: 28px; color: var(--cl-mute); }
+      #sheet .amt { margin-top: 6px; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 80px; letter-spacing: -0.03em; line-height: 1.15; }
+      #acct { margin-top: 20px; height: 84px; border-radius: 16px; background: var(--cl-navy2); display: flex; align-items: center; gap: 16px; padding: 0 22px; font-size: 30px; }
+      #acct .bi { width: 48px; height: 48px; border-radius: 12px; background: #2F3566; display: grid; place-items: center; color: var(--white); }
+      #acct .df { margin-left: auto; font-size: 28px; color: var(--cl-mute); }
+      #cf-wrap { position: relative; margin-top: 26px; height: 88px; }
+      #cf { position: absolute; inset: 0; border-radius: 16px; background: var(--cl-orange); color: var(--cl-navy); display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 32px; font-weight: 700; }
+      #cf-a, #cf-b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 14px; }
+      #spin { width: 34px; height: 34px; }
+      #sh-main { position: relative; }
+      #sh-ok { position: absolute; left: 0; right: 0; top: 96px; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; opacity: 0; }
+      #sh-ok .big { width: 132px; height: 132px; border-radius: 50%; background: var(--cl-orange); color: var(--cl-navy); display: grid; place-items: center; }
+      #sh-ok .t { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 54px; letter-spacing: -0.03em; }
+      #sh-ok .s { font-size: 30px; color: var(--cl-mute); }
+      #sh-body { transition: none; }
+
+      #cursor { position: absolute; left: 0; top: 0; width: 46px; height: 46px; }
+      .ripple { position: absolute; left: 0; top: 0; width: 76px; height: 76px; margin: -38px 0 0 -38px; border-radius: 50%; border: 3px solid var(--em); opacity: 0; }
+
+      /* end */
+      #end-t { position: absolute; left: 0; right: 0; top: 300px; text-align: center; font-family: "Sora", sans-serif; font-weight: 700; font-size: 96px; letter-spacing: -0.045em; line-height: 1; white-space: nowrap; }
+      #end-s { position: absolute; left: 0; right: 0; top: 432px; text-align: center; font-size: 38px; color: var(--ink6); white-space: nowrap; }
+      #end-u { position: absolute; left: 0; right: 0; top: 806px; display: flex; justify-content: center; }
+      #end-u span { height: 70px; padding: 0 30px; border-radius: 999px; background: var(--ink); color: var(--white); font-size: 36px; font-weight: 500; display: flex; align-items: center; gap: 12px; }
+
+      #end-t .w, #end-s .w, #end-u, #hl .w, #eyebrow { opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="11.5" data-width="1080" data-height="1080">
+
+      <!-- ===== AUDIO ===== -->
+      <audio id="mus" src="assets/music/bgm-ad.mp3" data-start="0" data-duration="11.5" data-media-start="58.25" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":10.1,"v":1},{"t":11.5,"v":0}]}]}'></audio>
+      <audio id="sx-wh0" src="assets/sfx/whoosh.mp3" data-start="0.0" data-duration="0.57" data-track-index="21" data-volume="0.28"></audio>
+      <audio id="sx-x" src="assets/sfx/pop.mp3" data-start="0.62" data-duration="0.7" data-track-index="22" data-volume="0.28"></audio>
+      <audio id="sx-wh1" src="assets/sfx/whoosh-short.mp3" data-start="2.2" data-duration="0.57" data-track-index="21" data-volume="0.2"></audio>
+      <audio id="sx-wh2" src="assets/sfx/whoosh-short.mp3" data-start="3.05" data-duration="0.57" data-track-index="23" data-volume="0.2"></audio>
+      <audio id="sx-c1" src="assets/sfx/click.mp3" data-start="4.95" data-duration="0.36" data-track-index="24" data-volume="0.32"></audio>
+      <audio id="sx-wh3" src="assets/sfx/whoosh-short.mp3" data-start="5.1" data-duration="0.57" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx-c2" src="assets/sfx/click.mp3" data-start="5.95" data-duration="0.36" data-track-index="24" data-volume="0.32"></audio>
+      <audio id="sx-imp" src="assets/sfx/impact-bass-1.mp3" data-start="6.5" data-duration="2.0" data-track-index="25" data-volume="0.3"></audio>
+      <audio id="sx-pop" src="assets/sfx/pop.mp3" data-start="7.55" data-duration="0.7" data-track-index="22" data-volume="0.25"></audio>
+      <audio id="sx-wh4" src="assets/sfx/whoosh.mp3" data-start="8.55" data-duration="0.57" data-track-index="23" data-volume="0.24"></audio>
+
+      <section id="s-main" class="scene clip" data-start="0" data-duration="11.5" data-track-index="1">
+        <div id="b1" class="blob" data-layout-ignore></div>
+        <div id="b2" class="blob" data-layout-ignore></div>
+        <div id="grain" data-layout-ignore></div>
+
+        <div id="eyebrow"><span><i></i>New integration</span></div>
+
+        <div id="lock">
+          <div id="lk-t" class="lk">
+            <svg width="80" height="80" viewBox="0 0 48 48"><rect width="48" height="48" rx="13" fill="#0F7A55"/><rect x="13" y="22" width="5.5" height="14" rx="2.75" fill="#fff"/><rect x="21.25" y="16" width="5.5" height="20" rx="2.75" fill="#fff"/><rect x="29.5" y="11" width="5.5" height="25" rx="2.75" fill="#fff"/></svg>
+            <span class="wm-t">tallyo</span>
+          </div>
+          <svg id="lk-x" viewBox="0 0 24 24" fill="none" stroke="#56665E" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
+          <div id="lk-c" class="lk">
+            <svg width="80" height="80" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#FF6A2B"/><path d="M13 31 25 15" stroke="#161A3D" stroke-width="5" stroke-linecap="round"/><path d="M23 33 35 17" stroke="#161A3D" stroke-width="5" stroke-linecap="round"/></svg>
+            <span class="wm-c">coinlane</span>
+          </div>
+        </div>
+
+        <div id="hl"><span class="w">Get</span><span class="w">paid</span><span class="w">in</span><span class="w em">one</span><span class="w em">click.</span></div>
+
+        <div id="inv">
+          <div class="row">
+            <svg width="44" height="44" viewBox="0 0 48 48"><rect width="48" height="48" rx="13" fill="#0F7A55"/><rect x="13" y="22" width="5.5" height="14" rx="2.75" fill="#fff"/><rect x="21.25" y="16" width="5.5" height="20" rx="2.75" fill="#fff"/><rect x="29.5" y="11" width="5.5" height="25" rx="2.75" fill="#fff"/></svg>
+            <span class="no">Invoice INV-2051</span><span class="sp"></span>
+            <div class="st"><span id="st-s" class="pill p-sent"><i></i>Sent</span><span id="st-p" class="pill p-paid"><i></i>Paid</span></div>
+          </div>
+          <div style="margin-top:30px" class="lbl">Billed to</div>
+          <div class="who">Kettle Coffee</div>
+          <div style="margin-top:22px" class="lbl">Amount due · Oct 20</div>
+          <div class="amt">$1,920.00</div>
+          <div id="inv-act">
+            <div id="ring"></div>
+            <div id="pay-btn">
+              <svg width="40" height="40" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#FF6A2B"/><path d="M13 31 25 15" stroke="#161A3D" stroke-width="5" stroke-linecap="round"/><path d="M23 33 35 17" stroke="#161A3D" stroke-width="5" stroke-linecap="round"/></svg>
+              Pay with Coinlane
+            </div>
+            <div id="paid-row"><span class="ck"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Paid via Coinlane · just now</div>
+          </div>
+        </div>
+
+        <div id="sheet" data-layout-allow-occlusion>
+          <div class="row hd">
+            <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#FF6A2B"/><path d="M13 31 25 15" stroke="#161A3D" stroke-width="5" stroke-linecap="round"/><path d="M23 33 35 17" stroke="#161A3D" stroke-width="5" stroke-linecap="round"/></svg>
+            <span class="wm">coinlane</span>
+            <span class="sec"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Secure checkout</span>
+          </div>
+          <div id="sh-main">
+            <div id="sh-body">
+              <div class="ml">Pay Tallyo invoice INV-2051</div>
+              <div class="amt">$1,920.00</div>
+              <div id="acct">
+                <span class="bi"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 4l9 6"/><path d="M5 10v8"/><path d="M10 10v8"/><path d="M14 10v8"/><path d="M19 10v8"/><path d="M3 21h18"/></svg></span>
+                Business checking<span class="df">Default</span>
+              </div>
+              <div id="cf-wrap">
+                <div id="cf">
+                  <div id="cf-a">Confirm payment</div>
+                  <div id="cf-b" style="opacity:0"><svg id="spin" viewBox="0 0 24 24" fill="none" stroke="#161A3D" stroke-width="3" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>Processing</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="sh-ok">
+            <div class="big"><svg width="66" height="66" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <div class="t">Payment sent</div>
+            <div class="s">$1,920.00 to Tallyo</div>
+          </div>
+        </div>
+
+        <div id="rip1" class="ripple"></div>
+        <div id="rip2" class="ripple" style="border-color:#FF6A2B"></div>
+        <svg id="cursor" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.9z" fill="#10201A" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+
+        <div id="end-t"><span class="w">Available</span><span class="w">today</span></div>
+        <div id="end-s"><span class="w">Connect</span><span class="w">in</span><span class="w">Settings</span><span class="w">→</span><span class="w">Integrations</span></div>
+        <div id="end-u"><span>tallyo.app/coinlane</span></div>
+      </section>
+    </div>
+
+    <script>
+      document.fonts.ready.then(function () {
+        const $ = (s) => document.querySelector(s);
+        const R = $("#root").getBoundingClientRect();
+        const ctr = (node) => { const r = node.getBoundingClientRect(); return { x: r.left - R.left + r.width / 2, y: r.top - R.top + r.height / 2 }; };
+        const TIP_X = 7, TIP_Y = 4;
+        const cur = (p) => ({ x: p.x - TIP_X, y: p.y - TIP_Y });
+        // measure in final layout before any tween is created
+        const P = { pay: ctr($("#pay-btn")), cf: ctr($("#cf")) };
+        const lockY = ctr($("#lock")).y;
+
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (s, t, o = {}) => tl.fromTo(s, { opacity: 0, y: o.y ?? 26, filter: "blur(12px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.5, stagger: o.s ?? 0.09, ease: "power3.out" }, t);
+        const click = (rip, p, t) => {
+          tl.to("#cursor", { scale: 0.86, duration: 0.07, yoyo: true, repeat: 1, transformOrigin: "15% 10%" }, t);
+          tl.fromTo(rip, { x: p.x, y: p.y, scale: 0.3, opacity: 0.85 }, { scale: 1.25, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false }, t + 0.02);
+        };
+
+        // background drift
+        tl.fromTo("#b1", { x: 0, y: 0 }, { x: 110, y: 70, duration: 11.5, ease: "none" }, 0);
+        tl.fromTo("#b2", { x: 0, y: 0 }, { x: -120, y: -60, duration: 11.5, ease: "none" }, 0);
+
+        // ---- 0–2.2 lockup ----
+        tl.fromTo("#lk-t", { x: -640, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "expo.out" }, 0.05);
+        tl.fromTo("#lk-c", { x: 640, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "expo.out" }, 0.05);
+        tl.fromTo("#lk-x", { scale: 0, rotation: -90, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.5, ease: "back.out(3)" }, 0.6);
+        tl.fromTo("#eyebrow", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 0.85);
+        tl.fromTo("#lock", { scale: 1 }, { scale: 1.04, duration: 2.1, ease: "none" }, 0.1);
+        // lockup docks at the top
+        tl.to("#eyebrow", { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, 2.1);
+        tl.to("#lock", { y: 120 - lockY, scale: 0.6, duration: 0.75, ease: "power3.inOut" }, 2.2);
+
+        // ---- headline + invoice ----
+        wordsIn("#hl .w", 2.8, { s: 0.1, y: 30 });
+        tl.fromTo("#inv", { y: 140, opacity: 0, scale: 0.96 }, { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" }, 3.0);
+        tl.fromTo("#cursor", { x: cur(P.pay).x + 260, y: cur(P.pay).y + 260, opacity: 0 }, { x: cur(P.pay).x + 250, y: cur(P.pay).y, opacity: 1, duration: 0.8, ease: "power3.out" }, 4.05);
+        tl.to("#pay-btn", { backgroundColor: "#232850", duration: 0.15 }, 4.75);
+        tl.to("#pay-btn", { scale: 0.97, duration: 0.07, yoyo: true, repeat: 1 }, 4.95);
+        click("#rip1", { x: P.pay.x + 250, y: P.pay.y }, 4.95);
+
+        // ---- Coinlane checkout ----
+        tl.to("#inv", { scale: 0.92, y: -50, filter: "blur(6px)", opacity: 0, duration: 0.4, ease: "power2.in" }, 5.05);
+        tl.fromTo("#sheet", { y: 360, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 5.2);
+        tl.to("#cursor", { x: cur(P.cf).x + 200, y: cur(P.cf).y, duration: 0.45, ease: "power3.inOut" }, 5.4);
+        tl.to("#cf", { scale: 0.97, duration: 0.07, yoyo: true, repeat: 1 }, 5.95);
+        click("#rip2", { x: P.cf.x + 200, y: P.cf.y }, 5.95);
+        tl.to("#cf-a", { opacity: 0, duration: 0.08 }, 6.0);
+        tl.to("#cf-b", { opacity: 1, duration: 0.1 }, 6.09);
+        tl.fromTo("#spin", { rotation: 0 }, { rotation: 360, duration: 0.5, ease: "none", transformOrigin: "50% 50%" }, 6.0);
+        tl.to("#cursor", { x: "+=220", y: "+=200", opacity: 0, duration: 0.5, ease: "power2.in" }, 6.15);
+        // success on the music lift (6.5)
+        tl.to("#sh-body", { opacity: 0, y: -20, duration: 0.2, ease: "power2.in" }, 6.42);
+        tl.fromTo("#sh-ok", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 6.5);
+        tl.fromTo("#sh-ok .big", { scale: 0.3 }, { scale: 1, duration: 0.55, ease: "back.out(2.6)" }, 6.5);
+        tl.fromTo(["#sh-ok .t", "#sh-ok .s"], { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, ease: "power3.out" }, 6.62);
+
+        // ---- back to Tallyo: Paid ----
+        tl.to("#sheet", { y: 360, opacity: 0, duration: 0.35, ease: "power3.in" }, 7.0);
+        tl.to("#inv", { scale: 1, y: 0, filter: "blur(0px)", opacity: 1, duration: 0.55, ease: "power3.out" }, 7.3);
+        tl.to("#st-s", { opacity: 0, y: -12, duration: 0.18 }, 7.5);
+        tl.fromTo("#st-p", { opacity: 0, y: 12, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(2.8)" }, 7.55);
+        tl.to("#pay-btn", { opacity: 0, duration: 0.2 }, 7.55);
+        tl.fromTo("#paid-row", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 7.6);
+        tl.fromTo("#paid-row .ck", { scale: 0.3 }, { scale: 1, duration: 0.45, ease: "back.out(3)" }, 7.65);
+        tl.fromTo("#ring", { opacity: 0.9, scale: 0.98 }, { opacity: 0, scale: 1.08, duration: 0.8, ease: "power2.out", immediateRender: false }, 7.65);
+        tl.to("#inv", { y: -8, duration: 0.7, ease: "sine.inOut" }, 7.88);
+
+        // ---- end card ----
+        tl.to("#hl .w", { opacity: 0, y: -20, filter: "blur(10px)", duration: 0.3, stagger: 0.03, ease: "power2.in" }, 8.55);
+        tl.to("#inv", { y: 120, opacity: 0, scale: 0.94, filter: "blur(8px)", duration: 0.6, ease: "power3.in" }, 8.6);
+        tl.to("#lock", { y: 650 - lockY, scale: 0.78, duration: 0.9, ease: "power3.inOut" }, 8.75);
+        wordsIn("#end-t .w", 9.1, { s: 0.12, y: 34 });
+        wordsIn("#end-s .w", 9.45, { s: 0.06, y: 18 });
+        tl.fromTo("#end-u", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 9.9);
+
+        window.__timelines["main"] = tl;
+      });
+    </script>
+  </body>
+</html>

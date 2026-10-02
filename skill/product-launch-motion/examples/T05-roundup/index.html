@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Space Grotesk"; src: url(assets/fonts/space-grotesk-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Space Grotesk"; src: url(assets/fonts/space-grotesk-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-900-normal.woff2) format("woff2"); font-weight: 900; }
+      :root {
+        --honey: #FFC22E; --honey-d: #E9A800; --honey-s: #FFF1C9;
+        --ink: #16130F; --ink2: #4A443B; --ink3: #6B6357;
+        --cream: #F7F2E8; --paper: #FFFFFF; --line: #E7DFCF; --sunk: #F1EBDE;
+        --coal: #221D17; --coal-l: #3A342C;
+        --tang: #FF6B3D; --tang-t: #C2410C; --leaf: #2F8F5B; --leaf-t: #1E6B42; --leaf-s: #E2F3E8;
+        --sky: #3D7BFF; --plum: #8B5CF6;
+        --r: 28px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; font-family: "Inter", Arial, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .fill { position: absolute; inset: 0; }
+      .abs { position: absolute; }
+      .disp { font-family: "Space Grotesk", "Inter", sans-serif; font-weight: 700; letter-spacing: -0.04em; }
+      .w { display: inline-block; margin-right: 0.22em; }
+      .w:last-child { margin-right: 0; }
+      .hexbg { position: absolute; inset: -200px; }
+
+      /* ---------- hook ---------- */
+      .bg-honey { background: var(--honey); }
+      .bg-ink { background: var(--ink); }
+      .bg-cream { background: var(--cream); }
+      #h-logo { position: absolute; left: 130px; top: 96px; display: flex; align-items: center; gap: 16px; }
+      .wm { font-family: "Space Grotesk", sans-serif; font-weight: 700; letter-spacing: -0.045em; }
+      #h-eyebrow { position: absolute; right: 130px; top: 104px; font-weight: 500; font-size: 30px; letter-spacing: 0.14em; text-transform: uppercase; }
+      #h-l1, #h-l2 { position: absolute; left: 122px; font-size: 236px; line-height: 0.9; white-space: nowrap; }
+      #h-l1 { top: 286px; }
+      #h-l2 { top: 548px; }
+      #h-q3 { display: inline-block; background: var(--ink); color: var(--honey); border-radius: 36px; padding: 0 34px; margin-left: 18px; }
+      #h-idx { position: absolute; left: 130px; top: 850px; display: flex; gap: 18px; }
+      .ichip { height: 96px; padding: 0 36px; border-radius: 999px; border: 3px solid var(--ink); display: flex; align-items: center; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 46px; letter-spacing: -0.02em; }
+
+      /* ---------- title cards ---------- */
+      .tc-top { position: absolute; left: 130px; right: 130px; top: 96px; display: flex; justify-content: space-between; align-items: center; }
+      .tc-tag { display: flex; align-items: center; gap: 16px; color: var(--cream); font-size: 30px; font-weight: 500; }
+      .rail { display: flex; gap: 10px; align-items: center; }
+      .rail i { display: block; width: 64px; height: 8px; border-radius: 4px; background: var(--coal-l); }
+      .rail i.on { background: var(--honey); }
+      .rail b { font-family: "Space Grotesk", sans-serif; font-size: 30px; font-weight: 700; margin-left: 14px; letter-spacing: -0.01em; }
+      .tc-num { position: absolute; left: 112px; top: 236px; font-size: 400px; line-height: 0.8; color: var(--honey); white-space: nowrap; }
+      .tc-name { position: absolute; left: 124px; top: 640px; font-size: 156px; line-height: 1; color: var(--cream); white-space: nowrap; }
+      .tc-sub { position: absolute; left: 130px; top: 840px; font-size: 40px; color: #CFC6B6; white-space: nowrap; }
+      .tc-hex { position: absolute; left: 1180px; top: 200px; width: 640px; height: 700px; }
+      .tc-icon { position: absolute; left: 1380px; top: 430px; width: 240px; height: 240px; }
+
+      /* ---------- UI scenes ---------- */
+      .dots { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(22,19,15,0.10) 1.6px, transparent 2px); background-size: 40px 40px; }
+      .ui-top { position: absolute; left: 130px; right: 130px; top: 84px; display: flex; justify-content: space-between; align-items: center; }
+      .ui-lbl { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 500; color: var(--ink2); }
+      .npill { height: 46px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: var(--honey); display: grid; place-items: center; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 28px; }
+      .ui-rail i { background: #DDD3C0; }
+      .ui-rail i.on { background: var(--ink); }
+      .ui-rail b { color: var(--ink); }
+      .ui-h { position: absolute; left: 124px; top: 150px; font-size: 88px; line-height: 1; white-space: nowrap; }
+      .stage { position: absolute; left: 130px; top: 296px; width: 1660px; height: 730px; perspective: 2400px; }
+      .win { position: absolute; inset: 0; background: var(--paper); border: 2px solid var(--line); border-radius: var(--r); overflow: hidden; box-shadow: 0 50px 100px -40px rgba(22,19,15,0.35), 0 10px 30px -12px rgba(22,19,15,0.18); transform-origin: 50% 0%; }
+      .chrome { position: absolute; left: 0; right: 0; top: 0; height: 88px; border-bottom: 2px solid var(--line); display: flex; align-items: center; padding: 0 36px; gap: 18px; }
+      .chrome .crumb { font-size: 30px; font-weight: 500; color: var(--ink); }
+      .chrome .crumb span { color: var(--ink3); }
+      .tabs { margin-left: auto; display: flex; gap: 8px; background: var(--sunk); padding: 6px; border-radius: 16px; }
+      .tabs div { height: 48px; padding: 0 20px; border-radius: 11px; display: flex; align-items: center; font-size: 28px; font-weight: 500; color: var(--ink2); }
+      .tabs div.on { background: var(--paper); color: var(--ink); box-shadow: 0 2px 8px rgba(22,19,15,0.12); }
+      .body { position: absolute; left: 0; right: 0; top: 88px; bottom: 0; }
+      .av { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 20px; flex: none; }
+      #cursor1, #cursor3 { position: absolute; left: 0; top: 0; width: 52px; height: 52px; }
+
+      /* F1 timeline */
+      #t-cols { position: absolute; left: 430px; right: 0; top: 0; height: 64px; display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 2px solid var(--line); }
+      #t-cols div { display: flex; align-items: center; padding-left: 24px; font-size: 28px; font-weight: 500; color: var(--ink3); border-left: 2px solid var(--line); }
+      #t-names { position: absolute; left: 0; top: 64px; width: 430px; }
+      .tn { height: 112px; display: flex; align-items: center; padding-left: 36px; font-size: 30px; font-weight: 500; border-bottom: 2px solid var(--sunk); white-space: nowrap; }
+      #t-grid { position: absolute; left: 430px; right: 0; top: 64px; bottom: 0; }
+      #t-grid .vl { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--sunk); }
+      .bar { position: absolute; height: 64px; border-radius: 16px; display: flex; align-items: center; gap: 12px; padding: 0 10px; font-size: 28px; font-weight: 700; color: var(--ink); transform-origin: 0% 50%; white-space: nowrap; overflow: hidden; }
+      .bar .av { width: 44px; height: 44px; font-size: 18px; }
+      #t-today { position: absolute; top: 0; bottom: 0; left: 470px; width: 4px; background: var(--tang); }
+      #t-today span { position: absolute; top: 10px; left: 12px; background: var(--tang-t); color: #fff; font-size: 24px; font-weight: 700; padding: 4px 12px; border-radius: 8px; }
+      #t-handle { position: absolute; width: 10px; height: 40px; border-radius: 5px; background: var(--ink); opacity: 0; }
+
+      /* F2 automations */
+      #a-flow { position: absolute; left: 70px; right: 70px; top: 120px; height: 260px; }
+      .node { position: absolute; top: 0; width: 440px; height: 236px; border-radius: 24px; border: 2px solid var(--line); background: var(--paper); padding: 30px 32px; box-shadow: 0 16px 40px -22px rgba(22,19,15,0.3); }
+      .node .k { font-size: 26px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink3); display: flex; align-items: center; gap: 12px; }
+      .node .k i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+      .node .v { margin-top: 26px; font-size: 38px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+      .node .chipx { margin-top: 18px; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; font-size: 26px; font-weight: 500; }
+      #a-lines { position: absolute; left: 0; top: 0; }
+      #a-foot { position: absolute; left: 70px; right: 70px; top: 440px; height: 140px; border-radius: 24px; background: var(--sunk); display: flex; align-items: center; padding: 0 40px; gap: 26px; }
+      #a-tog { width: 96px; height: 54px; border-radius: 999px; background: #CFC6B6; position: relative; flex: none; }
+      #a-knob { position: absolute; left: 6px; top: 6px; width: 42px; height: 42px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+      #a-st { font-size: 34px; font-weight: 700; }
+      #a-runs { margin-left: auto; font-size: 34px; color: var(--ink2); font-weight: 500; }
+      #a-runs b { font-family: "Space Grotesk", sans-serif; color: var(--ink); font-size: 56px; letter-spacing: -0.03em; margin-right: 10px; }
+
+      /* F3 workload */
+      #w-rows { position: absolute; left: 50px; right: 50px; top: 40px; display: flex; flex-direction: column; gap: 14px; }
+      .wr { height: 98px; display: flex; align-items: center; gap: 22px; padding: 0 22px; border-radius: 20px; position: relative; }
+      .wr .nm { width: 210px; font-size: 32px; font-weight: 500; }
+      .wr .tr { position: relative; width: 860px; height: 40px; border-radius: 12px; background: var(--sunk); }
+      .wr .fl { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 12px; background: var(--leaf); }
+      .wr .cap { position: absolute; top: -10px; bottom: -10px; left: 688px; width: 3px; background: var(--ink); opacity: 0.35; }
+      .wr .pc { width: 120px; text-align: right; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 40px; letter-spacing: -0.02em; }
+      .wr .tk { position: absolute; right: 22px; height: 54px; padding: 0 18px; border-radius: 14px; background: var(--paper); border: 2px solid var(--line); display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 500; white-space: nowrap; }
+      #w-chip { position: absolute; left: 0; top: 0; height: 60px; padding: 0 20px; border-radius: 14px; background: var(--honey); display: flex; align-items: center; gap: 10px; font-size: 28px; font-weight: 700; white-space: nowrap; box-shadow: 0 16px 34px -12px rgba(22,19,15,0.45); }
+      #w-bal { position: absolute; right: 40px; top: 18px; height: 56px; padding: 0 22px; border-radius: 999px; background: var(--leaf-s); color: var(--leaf-t); font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+
+      /* F4 Hive AI */
+      #ai-in { position: absolute; left: 60px; right: 60px; top: 44px; height: 104px; border-radius: 24px; border: 2px solid var(--ink); display: flex; align-items: center; padding: 0 16px 0 30px; gap: 18px; }
+      #ai-in .spark { width: 48px; height: 48px; flex: none; }
+      #ai-txt { font-size: 38px; font-weight: 500; white-space: nowrap; }
+      #ai-caret { display: inline-block; width: 3px; height: 40px; background: var(--ink); vertical-align: -6px; margin-left: 4px; }
+      #ai-send { margin-left: auto; width: 72px; height: 72px; border-radius: 18px; background: var(--ink); display: grid; place-items: center; }
+      #ai-status { position: absolute; left: 64px; top: 176px; font-size: 30px; font-weight: 500; color: var(--ink2); display: flex; align-items: center; gap: 12px; }
+      #ai-status .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--honey-d); }
+      #ai-card { position: absolute; left: 60px; right: 60px; top: 236px; height: 380px; border-radius: 24px; background: var(--honey-s); padding: 34px 40px; }
+      #ai-card .hd { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 40px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 14px; }
+      .ai-li { margin-top: 24px; display: flex; align-items: center; gap: 18px; font-size: 36px; font-weight: 500; }
+      .ai-li .ic { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; flex: none; color: #fff; font-weight: 700; font-size: 26px; }
+      #ai-post { position: absolute; right: 40px; bottom: 34px; height: 64px; padding: 0 26px; border-radius: 999px; background: var(--ink); color: var(--cream); font-size: 28px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+
+      /* recap */
+      #r-h { position: absolute; left: 124px; top: 96px; font-size: 120px; line-height: 1; color: var(--cream); white-space: nowrap; }
+      #r-h .hn { color: var(--honey); }
+      #r-sub { position: absolute; right: 130px; top: 128px; font-size: 34px; color: #CFC6B6; font-weight: 500; }
+      #r-grid { position: absolute; left: 130px; top: 290px; width: 1660px; height: 700px; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 24px; }
+      .tile { position: relative; border-radius: var(--r); background: var(--coal); border: 2px solid var(--coal-l); overflow: hidden; padding: 34px 38px; }
+      .tile .n { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 34px; color: var(--honey); }
+      .tile .t { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 54px; color: var(--cream); letter-spacing: -0.03em; margin-top: 6px; white-space: nowrap; }
+      .tile .viz { position: absolute; left: 38px; right: 38px; bottom: 34px; height: 130px; }
+
+      /* end */
+      #e-mark { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; align-items: center; gap: 34px; }
+      #e-mark .wm { font-size: 200px; line-height: 1; color: var(--ink); }
+      #e-line { position: absolute; left: 0; right: 0; top: 610px; text-align: center; font-size: 52px; font-weight: 500; color: var(--ink); letter-spacing: -0.015em; }
+      #e-cta { position: absolute; left: 0; right: 0; top: 730px; display: flex; justify-content: center; align-items: center; gap: 28px; }
+      #e-cta .btn { height: 88px; padding: 0 44px; border-radius: 999px; background: var(--ink); color: var(--honey); font-size: 36px; font-weight: 700; display: flex; align-items: center; gap: 14px; }
+      #e-cta .url { font-size: 36px; font-weight: 500; color: var(--ink); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="25" data-width="1920" data-height="1080">
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="mus" src="assets/music/bgm-ad.mp3" data-start="0" data-duration="25" data-media-start="60.94" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":23.6,"v":1},{"t":25,"v":0}]}]}'></audio>
+      <audio id="sx-rise" src="assets/sfx/riser.mp3" data-start="1.5" data-duration="2.34" data-media-start="7.66" data-track-index="21" data-volume="0.26"></audio>
+      <audio id="sx-i1" src="assets/sfx/click-soft.mp3" data-start="1.92" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-i2" src="assets/sfx/click-soft.mp3" data-start="2.40" data-duration="0.36" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-i3" src="assets/sfx/click-soft.mp3" data-start="2.88" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-i4" src="assets/sfx/click-soft.mp3" data-start="3.36" data-duration="0.36" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-imp" src="assets/sfx/impact-bass-1.mp3" data-start="3.84" data-duration="2.1" data-track-index="24" data-volume="0.4"></audio>
+      <audio id="sx-w1" src="assets/sfx/whoosh-short.mp3" data-start="5.18" data-duration="0.57" data-track-index="25" data-volume="0.25"></audio>
+      <audio id="sx-c1" src="assets/sfx/click.mp3" data-start="6.5" data-duration="0.36" data-track-index="22" data-volume="0.25"></audio>
+      <audio id="sx-t2" src="assets/sfx/whoosh.mp3" data-start="7.6" data-duration="0.57" data-track-index="26" data-volume="0.22"></audio>
+      <audio id="sx-w2" src="assets/sfx/whoosh-short.mp3" data-start="9.02" data-duration="0.57" data-track-index="25" data-volume="0.25"></audio>
+      <audio id="sx-p2a" src="assets/sfx/click-soft.mp3" data-start="9.5" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-p2b" src="assets/sfx/click-soft.mp3" data-start="9.86" data-duration="0.36" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-p2c" src="assets/sfx/click-soft.mp3" data-start="10.22" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-p2d" src="assets/sfx/pop.mp3" data-start="10.62" data-duration="0.7" data-track-index="27" data-volume="0.25"></audio>
+      <audio id="sx-t3" src="assets/sfx/whoosh.mp3" data-start="11.44" data-duration="0.57" data-track-index="26" data-volume="0.22"></audio>
+      <audio id="sx-w3" src="assets/sfx/whoosh-short.mp3" data-start="12.86" data-duration="0.57" data-track-index="25" data-volume="0.25"></audio>
+      <audio id="sx-c3" src="assets/sfx/click.mp3" data-start="13.62" data-duration="0.36" data-track-index="22" data-volume="0.25"></audio>
+      <audio id="sx-c3b" src="assets/sfx/click-soft.mp3" data-start="14.28" data-duration="0.36" data-track-index="23" data-volume="0.25"></audio>
+      <audio id="sx-p3" src="assets/sfx/pop.mp3" data-start="14.6" data-duration="0.7" data-track-index="27" data-volume="0.25"></audio>
+      <audio id="sx-t4" src="assets/sfx/whoosh.mp3" data-start="15.28" data-duration="0.57" data-track-index="26" data-volume="0.22"></audio>
+      <audio id="sx-w4" src="assets/sfx/whoosh-short.mp3" data-start="16.7" data-duration="0.57" data-track-index="25" data-volume="0.25"></audio>
+      <audio id="sx-ty" src="assets/sfx/typing.mp3" data-start="17.0" data-duration="0.85" data-track-index="28" data-volume="0.22"></audio>
+      <audio id="sx-p4" src="assets/sfx/pop.mp3" data-start="18.1" data-duration="0.7" data-track-index="27" data-volume="0.22"></audio>
+      <audio id="sx-wr" src="assets/sfx/whoosh.mp3" data-start="19.12" data-duration="0.57" data-track-index="26" data-volume="0.28"></audio>
+      <audio id="sx-r1" src="assets/sfx/click-soft.mp3" data-start="19.68" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-r2" src="assets/sfx/click-soft.mp3" data-start="20.16" data-duration="0.36" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-r3" src="assets/sfx/click-soft.mp3" data-start="20.64" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-r4" src="assets/sfx/click-soft.mp3" data-start="21.12" data-duration="0.36" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-we" src="assets/sfx/whoosh.mp3" data-start="22.0" data-duration="0.57" data-track-index="26" data-volume="0.3"></audio>
+      <audio id="sx-ie" src="assets/sfx/impact-bass-2.mp3" data-start="22.12" data-duration="2.5" data-track-index="24" data-volume="0.3"></audio>
+
+      <!-- ================= HOOK 0–3.84 ================= -->
+      <section id="s-hook" class="scene clip bg-honey" data-start="0" data-duration="3.84" data-track-index="1">
+        <div id="h-cam" class="fill">
+          <svg class="hexbg" id="h-hex" width="2320" height="1480"><defs><pattern id="hp" width="120" height="104" patternUnits="userSpaceOnUse"><path d="M30 2 L90 2 L120 52 L90 102 L30 102 L0 52 Z" fill="none" stroke="#16130F" stroke-opacity="0.08" stroke-width="3"/></pattern></defs><rect width="2320" height="1480" fill="url(#hp)"/></svg>
+          <div id="h-logo"><svg width="60" height="66" viewBox="0 0 100 110"><path d="M50 4 L94 29 L94 81 L50 106 L6 81 L6 29 Z" fill="#16130F"/><path d="M50 36 L72 48.5 L72 73.5 L50 86 L28 73.5 L28 48.5 Z" fill="#FFC22E"/></svg><span class="wm" style="font-size:52px">taskhive</span></div>
+          <div id="h-eyebrow">Q3 release roundup</div>
+          <div id="h-l1" class="disp"><span class="w">Everything</span></div>
+          <div id="h-l2" class="disp"><span class="w">we</span><span class="w">shipped</span><span class="w" id="h-q3">Q3</span></div>
+          <div id="h-idx"><div class="ichip">01</div><div class="ichip">02</div><div class="ichip">03</div><div class="ichip">04</div></div>
+        </div>
+      </section>
+
+      <!-- ================= TITLE CARDS ================= -->
+      <section id="tc1" class="scene clip bg-ink" data-start="3.84" data-duration="1.84" data-track-index="2"></section>
+      <section id="tc2" class="scene clip bg-ink" data-start="7.68" data-duration="1.84" data-track-index="2"></section>
+      <section id="tc3" class="scene clip bg-ink" data-start="11.52" data-duration="1.84" data-track-index="2"></section>
+      <section id="tc4" class="scene clip bg-ink" data-start="15.36" data-duration="1.84" data-track-index="2"></section>
+
+      <!-- ================= UI 1 · TIMELINE ================= -->
+      <section id="ui1" class="scene clip bg-cream" data-start="5.28" data-duration="2.4" data-track-index="3" style="z-index:3">
+        <div class="ui-wrap fill">
+          <div class="dots"></div>
+          <div class="ui-top"><div class="ui-lbl"><span class="npill">01</span>Timeline view</div><div class="rail ui-rail"><i class="on"></i><i></i><i></i><i></i></div></div>
+          <div class="ui-h disp"><span class="w">See</span><span class="w">every</span><span class="w">deadline</span><span class="w">at</span><span class="w">once.</span></div>
+          <div class="stage"><div class="win" id="win1">
+            <div class="chrome"><div class="crumb"><span>Launch plan /</span> Q4 roadmap</div><div class="tabs"><div>List</div><div>Board</div><div class="on">Timeline</div></div></div>
+            <div class="body">
+              <div id="t-cols"><div>October</div><div>November</div><div>December</div></div>
+              <div id="t-names"></div>
+              <div id="t-grid"><div id="t-today"><span>Today</span></div><div id="t-handle"></div></div>
+            </div>
+          </div></div>
+          <svg id="cursor1" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.9z" fill="#16130F" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </div>
+      </section>
+
+      <!-- ================= UI 2 · AUTOMATIONS ================= -->
+      <section id="ui2" class="scene clip bg-cream" data-start="9.12" data-duration="2.4" data-track-index="3" style="z-index:3">
+        <div class="ui-wrap fill">
+          <div class="dots"></div>
+          <div class="ui-top"><div class="ui-lbl"><span class="npill">02</span>Automations</div><div class="rail ui-rail"><i></i><i class="on"></i><i></i><i></i></div></div>
+          <div class="ui-h disp"><span class="w">Busywork,</span><span class="w">on</span><span class="w">autopilot.</span></div>
+          <div class="stage"><div class="win" id="win2">
+            <div class="chrome"><div class="crumb"><span>Automations /</span> Ship flow</div><div class="tabs"><div class="on">Builder</div><div>History</div></div></div>
+            <div class="body">
+              <svg id="a-lines" width="1660" height="400"><path id="a-l1" d="M550 238 L620 238" stroke="#16130F" stroke-width="4" stroke-linecap="round" fill="none"/><path id="a-l2" d="M1040 238 L1110 238" stroke="#16130F" stroke-width="4" stroke-linecap="round" fill="none"/></svg>
+              <div id="a-flow">
+                <div class="node" style="left:0"><div class="k"><i style="background:var(--honey-d)"></i>When</div><div class="v">Status changes to Done</div></div>
+                <div class="node" style="left:550px"><div class="k"><i style="background:var(--sky)"></i>Then</div><div class="v">Move to Shipped</div><div class="chipx" style="background:#E6EEFF;color:#1F4FD1">Board · Q4</div></div>
+                <div class="node" style="left:1080px"><div class="k"><i style="background:var(--plum)"></i>And</div><div class="v">Post in #launches</div><div class="chipx" style="background:#EFE8FF;color:#6235C9">Slack-style chat</div></div>
+              </div>
+              <div id="a-foot"><div id="a-tog"><div id="a-knob"></div></div><div id="a-st">Rule active</div><div id="a-runs"><b id="a-num">0</b>runs this week</div></div>
+            </div>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- ================= UI 3 · WORKLOAD ================= -->
+      <section id="ui3" class="scene clip bg-cream" data-start="12.96" data-duration="2.4" data-track-index="3" style="z-index:3">
+        <div class="ui-wrap fill">
+          <div class="dots"></div>
+          <div class="ui-top"><div class="ui-lbl"><span class="npill">03</span>Workload</div><div class="rail ui-rail"><i></i><i></i><i class="on"></i><i></i></div></div>
+          <div class="ui-h disp"><span class="w">Balance</span><span class="w">the</span><span class="w">team</span><span class="w">in</span><span class="w">one</span><span class="w">drag.</span></div>
+          <div class="stage"><div class="win" id="win3">
+            <div class="chrome"><div class="crumb"><span>Team /</span> This sprint</div><div id="w-bal">✓ Balanced</div></div>
+            <div class="body"><div id="w-rows"></div><div id="w-chip"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#16130F" stroke-width="2.4" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>API docs</div></div>
+          </div></div>
+          <svg id="cursor3" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.9z" fill="#16130F" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </div>
+      </section>
+
+      <!-- ================= UI 4 · HIVE AI ================= -->
+      <section id="ui4" class="scene clip bg-cream" data-start="16.8" data-duration="2.4" data-track-index="3" style="z-index:3">
+        <div class="ui-wrap fill">
+          <div class="dots"></div>
+          <div class="ui-top"><div class="ui-lbl"><span class="npill">04</span>Hive AI</div><div class="rail ui-rail"><i></i><i></i><i></i><i class="on"></i></div></div>
+          <div class="ui-h disp"><span class="w">Status</span><span class="w">updates,</span><span class="w">written</span><span class="w">for</span><span class="w">you.</span></div>
+          <div class="stage"><div class="win" id="win4">
+            <div class="chrome"><div class="crumb"><span>Sprint 14 /</span> Hive AI</div></div>
+            <div class="body">
+              <div id="ai-in"><svg class="spark" viewBox="0 0 24 24" fill="#E9A800"><path d="M12 2l2.2 6.3L20.5 10.5l-6.3 2.2L12 19l-2.2-6.3L3.5 10.5l6.3-2.2z"/></svg><span id="ai-txt"></span><span id="ai-caret"></span><div id="ai-send"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFC22E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></div>
+              <div id="ai-status"><span class="dot"></span><span id="ai-st">Reading 48 tasks…</span></div>
+              <div id="ai-card">
+                <div class="hd"><svg width="36" height="36" viewBox="0 0 24 24" fill="#16130F"><path d="M12 2l2.2 6.3L20.5 10.5l-6.3 2.2L12 19l-2.2-6.3L3.5 10.5l6.3-2.2z"/></svg>Sprint 14 summary</div>
+                <div class="ai-li"><span class="ic" style="background:var(--leaf)">✓</span>12 tasks shipped</div>
+                <div class="ai-li"><span class="ic" style="background:var(--tang-t)">!</span>2 blocked on review</div>
+                <div class="ai-li"><span class="ic" style="background:var(--ink)">→</span>On track for Oct 24</div>
+                <div id="ai-post">Post to #team <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+              </div>
+            </div>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- ================= RECAP 19.2–22.08 ================= -->
+      <section id="s-recap" class="scene clip bg-ink" data-start="19.2" data-duration="2.88" data-track-index="4" style="z-index:4">
+        <div id="r-cam" class="fill">
+          <div id="r-h" class="disp"><span class="w">Q3,</span><span class="w hn">shipped.</span></div>
+          <div id="r-sub">4 launches · 1 quarter</div>
+          <div id="r-grid">
+            <div class="tile" style="grid-column: span 2"><div class="n">01</div><div class="t">Timeline view</div>
+              <svg class="viz" viewBox="0 0 1000 130" preserveAspectRatio="none"><rect class="rv1" x="0" y="8" width="420" height="30" rx="10" fill="#FFC22E"/><rect class="rv1" x="200" y="50" width="520" height="30" rx="10" fill="#FF6B3D"/><rect class="rv1" x="460" y="92" width="540" height="30" rx="10" fill="#F7F2E8"/></svg></div>
+            <div class="tile"><div class="n">02</div><div class="t">Automations</div>
+              <svg class="viz" viewBox="0 0 440 130"><circle cx="40" cy="65" r="30" fill="#FFC22E"/><circle cx="220" cy="65" r="30" fill="#3D7BFF"/><circle cx="400" cy="65" r="30" fill="#8B5CF6"/><path d="M76 65H184M256 65H364" stroke="#F7F2E8" stroke-width="5" stroke-linecap="round"/></svg></div>
+            <div class="tile"><div class="n">03</div><div class="t">Workload</div>
+              <svg class="viz" viewBox="0 0 440 130" preserveAspectRatio="none"><rect x="0" y="6" width="440" height="22" rx="8" fill="#3A342C"/><rect x="0" y="6" width="320" height="22" rx="8" fill="#2F8F5B"/><rect x="0" y="54" width="440" height="22" rx="8" fill="#3A342C"/><rect x="0" y="54" width="290" height="22" rx="8" fill="#2F8F5B"/><rect x="0" y="102" width="440" height="22" rx="8" fill="#3A342C"/><rect x="0" y="102" width="340" height="22" rx="8" fill="#2F8F5B"/></svg></div>
+            <div class="tile" style="grid-column: span 2"><div class="n">04</div><div class="t">Hive AI</div>
+              <svg class="viz" viewBox="0 0 1000 130" preserveAspectRatio="xMinYMax meet"><rect x="0" y="10" width="1000" height="120" rx="22" fill="#FFF1C9"/><path d="M48 52l5 14 14 5-14 5-5 14-5-14-14-5 14-5z" fill="#16130F"/><rect x="100" y="48" width="380" height="16" rx="8" fill="#16130F"/><rect x="100" y="80" width="560" height="14" rx="7" fill="#6B6357"/></svg></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= END 22.08–25 ================= -->
+      <section id="s-end" class="scene clip bg-honey" data-start="22.08" data-duration="2.92" data-track-index="5" style="z-index:5">
+        <svg class="hexbg" id="e-hex" width="2320" height="1480"><defs><pattern id="hp2" width="120" height="104" patternUnits="userSpaceOnUse"><path d="M30 2 L90 2 L120 52 L90 102 L30 102 L0 52 Z" fill="none" stroke="#16130F" stroke-opacity="0.08" stroke-width="3"/></pattern></defs><rect width="2320" height="1480" fill="url(#hp2)"/></svg>
+        <div id="e-mark"><svg id="e-logo" width="170" height="187" viewBox="0 0 100 110"><path d="M50 4 L94 29 L94 81 L50 106 L6 81 L6 29 Z" fill="#16130F"/><path d="M50 36 L72 48.5 L72 73.5 L50 86 L28 73.5 L28 48.5 Z" fill="#FFC22E"/></svg><span class="wm" id="e-wm">taskhive</span></div>
+        <div id="e-line">All four live for every team today.</div>
+        <div id="e-cta"><div class="btn">Start free <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div><div class="url">taskhive.app</div></div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => Array.from(document.querySelectorAll(s));
+        const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+        const fmt = (n) => Math.round(n).toLocaleString("en-US");
+
+        // ---------- title cards (one template) ----------
+        const icons = {
+          1: '<svg viewBox="0 0 24 24" fill="none" stroke="#FFC22E" stroke-width="1.6" stroke-linecap="round"><path d="M3 6h9M7 12h11M5 18h8"/></svg>',
+          2: '<svg viewBox="0 0 24 24" fill="none" stroke="#FFC22E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+          3: '<svg viewBox="0 0 24 24" fill="none" stroke="#FFC22E" stroke-width="1.6" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+          4: '<svg viewBox="0 0 24 24" fill="#FFC22E"><path d="M12 2l2.2 6.3L20.5 10.5l-6.3 2.2L12 19l-2.2-6.3L3.5 10.5l6.3-2.2z"/></svg>',
+        };
+        const feats = [
+          ["Timeline", "view", "Plan the quarter visually"],
+          ["Automations", "", "Rules that run themselves"],
+          ["Workload", "", "Capacity for every teammate"],
+          ["Hive", "AI", "Your sprint, summarized"],
+        ];
+        feats.forEach(([a, b, sub], i) => {
+          const n = i + 1, s = $("#tc" + n);
+          const rail = [1, 2, 3, 4].map((k) => `<i class="${k === n ? "on" : ""}"></i>`).join("");
+          s.innerHTML = `<div class="fill tc-wrap" data-layout-allow-overlap>
+            <svg class="tc-hex" viewBox="0 0 100 110"><path d="M50 4 L94 29 L94 81 L50 106 L6 81 L6 29 Z" fill="none" stroke="#3A342C" stroke-width="0.6"/><path class="hx2" d="M50 16 L84 35.5 L84 74.5 L50 94 L16 74.5 L16 35.5 Z" fill="none" stroke="#FFC22E" stroke-width="0.6"/></svg>
+            <div class="tc-icon">${icons[n]}</div>
+            <div class="tc-top"><div class="tc-tag"><svg width="40" height="44" viewBox="0 0 100 110"><path d="M50 4 L94 29 L94 81 L50 106 L6 81 L6 29 Z" fill="#FFC22E"/><path d="M50 36 L72 48.5 L72 73.5 L50 86 L28 73.5 L28 48.5 Z" fill="#16130F"/></svg>Shipped in Q3</div><div class="rail">${rail}<b style="color:#F7F2E8">0${n}/04</b></div></div>
+            <div class="tc-num disp">0${n}</div>
+            <div class="tc-name disp"><span class="w">${a}</span>${b ? `<span class="w">${b}</span>` : ""}</div>
+            <div class="tc-sub">${sub}</div>
+          </div>`;
+        });
+
+        // ---------- F1 timeline data ----------
+        const tasks = [
+          ["Research sprint", 0.02, 0.26, "#FFC22E", "#B45309", "MK"],
+          ["Design review", 0.18, 0.46, "#FFD98A", "#7C3AED", "LT"],
+          ["API v2 build", 0.32, 0.70, "#FFB199", "#1F4FD1", "JO"],
+          ["Beta rollout", 0.58, 0.86, "#BFE3CC", "#1E6B42", "AS"],
+          ["Launch day", 0.84, 0.98, "#16130F", "#C2410C", "RB"],
+        ];
+        const GW = 1230; // grid width
+        const tnames = $("#t-names"), tgrid = $("#t-grid");
+        [1, 2].forEach((k) => { const v = el("div", "vl"); v.style.left = (GW / 3) * k + "px"; tgrid.prepend(v); });
+        const bars = [];
+        tasks.forEach(([n, s, e, c, ac, ini], i) => {
+          tnames.appendChild(el("div", "tn", n));
+          const b = el("div", "bar", `<span class="av" style="background:${ac}">${ini}</span>`);
+          b.style.left = s * GW + "px"; b.style.width = (e - s) * GW + "px"; b.style.top = 24 + i * 112 + "px";
+          b.style.background = c; if (c === "#16130F") b.style.color = "#FFC22E";
+          tgrid.insertBefore(b, $("#t-today")); bars.push(b);
+        });
+
+        // ---------- F3 workload data ----------
+        const people = [["Maya", "#C2410C", 0.98], ["Leo", "#1F4FD1", 0.42], ["Ana", "#2F8F5B", 0.66], ["Joon", "#7C3AED", 0.58], ["Rae", "#B45309", 0.71]];
+        const wrows = $("#w-rows");
+        people.forEach(([n, c, v], i) => {
+          const r = el("div", "wr", `<span class="av" style="background:${c}">${n[0]}</span><span class="nm">${n}</span><span class="tr"><span class="fl" style="width:${v * 860}px"></span><span class="cap"></span></span><span class="pc">${Math.round(v / 0.8 * 100)}%</span>`);
+          wrows.appendChild(r);
+        });
+        const wr = $$("#w-rows .wr");
+        // Maya overloaded: fill red-ish
+        wr[0].querySelector(".fl").style.background = "#FF6B3D";
+        wr[0].querySelector(".pc").style.color = "#C2410C";
+
+        // ---------- timeline ----------
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (sel, at, o = {}) => tl.fromTo(sel, { opacity: 0, y: o.y ?? 40, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.45, stagger: o.s ?? 0.06, ease: "power3.out" }, at);
+        const count = (node, from, to, at, dur, suffix = "") => { const o = { v: from }; tl.to(o, { v: to, duration: dur, ease: "power2.out", onUpdate: () => { node.textContent = fmt(o.v) + suffix; } }, at); };
+        const B = 0.48;
+
+        // HOOK 0–3.84
+        tl.fromTo("#h-hex", { x: 0, y: 0 }, { x: -60, y: -40, duration: 3.84, ease: "none" }, 0);
+        tl.fromTo("#h-logo", { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.05);
+        tl.fromTo("#h-eyebrow", { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.12);
+        wordsIn("#h-l1 .w", 0.15, { y: 90, d: 0.55 });
+        wordsIn("#h-l2 .w", 0.45, { y: 90, d: 0.55, s: 0.12 });
+        tl.fromTo("#h-q3", { scale: 0.6, rotation: -6 }, { scale: 1, rotation: 0, duration: 0.5, ease: "back.out(2.6)" }, 0.75);
+        $$("#h-idx .ichip").forEach((c, i) => {
+          tl.fromTo(c, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.3, ease: "back.out(2)" }, 1.92 + i * B);
+          tl.to(c, { backgroundColor: "#16130F", color: "#FFC22E", duration: 0.12 }, 1.92 + i * B + 0.1);
+        });
+        tl.fromTo("#h-cam", { scale: 1 }, { scale: 1.06, transformOrigin: "30% 55%", duration: 3.84, ease: "power1.in" }, 0);
+
+        // TITLE CARDS + UI per feature
+        const T0 = 3.84, BLK = 3.84;
+        [1, 2, 3, 4].forEach((n, i) => {
+          const t = T0 + i * BLK;
+          const s = "#tc" + n;
+          tl.fromTo(`${s} .tc-num`, { opacity: 0, y: 140, filter: "blur(20px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, t);
+          wordsIn(`${s} .tc-name .w`, t + 0.12, { y: 60, d: 0.45, s: 0.1 });
+          tl.fromTo(`${s} .tc-sub`, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, t + 0.35);
+          tl.fromTo(`${s} .tc-top`, { opacity: 0 }, { opacity: 1, duration: 0.3 }, t);
+          tl.fromTo(`${s} .tc-hex`, { rotation: -30, scale: 0.8, opacity: 0 }, { rotation: 0, scale: 1, opacity: 1, duration: 1.0, ease: "expo.out" }, t);
+          tl.fromTo(`${s} .tc-hex`, { y: 0 }, { y: -30, duration: 1.84, ease: "none" }, t);
+          tl.fromTo(`${s} .tc-icon`, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.2)" }, t + 0.2);
+          tl.fromTo(`${s} .tc-wrap`, { scale: 1 }, { scale: 1.04, transformOrigin: "20% 50%", duration: 1.84, ease: "none" }, t);
+          // UI scene reveal (clip-path wipe up over the title card)
+          const u = t + 1.44, us = "#ui" + n;
+          tl.fromTo(`${us} .ui-wrap`, { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.4, ease: "expo.inOut" }, u - 0.02);
+          wordsIn(`${us} .ui-h .w`, u + 0.04, { y: 30, d: 0.4, s: 0.05 });
+          tl.fromTo(`${us} .ui-top`, { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.35 }, u);
+          tl.fromTo(`#win${n}`, { y: 180, rotationX: 16, opacity: 0.4 }, { y: 0, rotationX: 5, opacity: 1, duration: 0.6, ease: "expo.out" }, u - 0.1);
+          tl.to(`#win${n}`, { rotationX: 0, scale: 1.025, duration: 1.75, ease: "none" }, u + 0.65);
+        });
+
+        // F1 timeline actions (u=5.28)
+        tl.fromTo(bars, { scaleX: 0 }, { scaleX: 1, duration: 0.45, stagger: 0.08, ease: "power3.out" }, 5.5);
+        tl.fromTo("#t-today", { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, transformOrigin: "50% 0%", duration: 0.35 }, 5.85);
+        // drag end of API bar (index 2): bar right edge in page coords
+        // win left 130, body top 296+88, grid left 430, grid top 64
+        const b2 = tasks[2], bx = 130 + 430 + b2[2] * GW, by = 296 + 88 + 64 + 24 + 2 * 112 + 32;
+        tl.set("#t-handle", { left: b2[2] * GW - 16, top: 24 + 2 * 112 + 12 }, 0);
+        tl.fromTo("#cursor1", { x: bx + 220, y: by + 260, opacity: 0 }, { x: bx - 6, y: by - 4, opacity: 1, duration: 0.55, ease: "power3.out" }, 5.9);
+        tl.to("#t-handle", { opacity: 1, duration: 0.1 }, 6.45);
+        tl.to(bars[2], { width: (b2[2] - b2[1] + 0.12) * GW, duration: 0.6, ease: "power2.inOut" }, 6.5);
+        tl.to("#t-handle", { x: 0.12 * GW, duration: 0.6, ease: "power2.inOut" }, 6.5);
+        tl.to("#cursor1", { x: bx - 6 + 0.12 * GW, duration: 0.6, ease: "power2.inOut" }, 6.5);
+        tl.to(bars[3], { x: 0.06 * GW, duration: 0.5, ease: "power2.inOut" }, 6.6);
+
+        // F2 automations (u=9.12)
+        const nodes = $$("#a-flow .node");
+        nodes.forEach((nd, i) => tl.fromTo(nd, { opacity: 0, y: 40, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 9.42 + i * 0.36));
+        tl.fromTo(["#a-l1", "#a-l2"], { strokeDasharray: 80, strokeDashoffset: 80 }, { strokeDashoffset: 0, duration: 0.25, stagger: 0.36, ease: "power2.out" }, 9.7);
+        tl.fromTo("#a-foot", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 10.3);
+        tl.to("#a-tog", { backgroundColor: "#2F8F5B", duration: 0.2 }, 10.62);
+        tl.fromTo("#a-knob", { x: 0 }, { x: 42, duration: 0.25, ease: "back.out(2)" }, 10.62);
+        count($("#a-num"), 0, 128, 10.7, 0.75);
+
+        // F3 workload (u=12.96)
+        tl.fromTo(wr, { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.35, stagger: 0.06, ease: "power3.out" }, 13.2);
+        tl.fromTo(wr.map((r) => r.querySelector(".fl")), { scaleX: 0 }, { scaleX: 1, transformOrigin: "0% 50%", duration: 0.5, stagger: 0.06, ease: "power3.out" }, 13.25);
+        tl.set("#w-bal", { opacity: 0 }, 0);
+        // chip from Maya row (row0) to Leo row (row1). body origin page: x130, y 296+88
+        const ox = 130, oy = 296 + 88;
+        const c0 = { x: 1430, y: 40 + 19 }, c1 = { x: 1430, y: 40 + 98 + 14 + 19 };
+        tl.fromTo("#w-chip", { x: c0.x, y: c0.y, opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.25 }, 13.45);
+        tl.fromTo("#cursor3", { x: ox + c0.x + 200, y: oy + c0.y + 220, opacity: 0 }, { x: ox + c0.x + 90, y: oy + c0.y + 30, opacity: 1, duration: 0.35, ease: "power3.out" }, 13.3);
+        tl.to("#w-chip", { y: c1.y, rotation: -3, duration: 0.55, ease: "power2.inOut" }, 13.7);
+        tl.to("#cursor3", { y: oy + c1.y + 30, duration: 0.55, ease: "power2.inOut" }, 13.7);
+        tl.to("#w-chip", { rotation: 0, duration: 0.15 }, 14.25);
+        const fl0 = wr[0].querySelector(".fl"), fl1 = wr[1].querySelector(".fl");
+        tl.to(fl0, { width: 0.70 * 860, backgroundColor: "#2F8F5B", duration: 0.45, ease: "power2.out" }, 14.25);
+        tl.to(fl1, { width: 0.64 * 860, duration: 0.45, ease: "power2.out" }, 14.25);
+        tl.to(wr[0].querySelector(".pc"), { color: "#16130F", duration: 0.2 }, 14.3);
+        count(wr[0].querySelector(".pc"), 123, 88, 14.25, 0.45, "%");
+        count(wr[1].querySelector(".pc"), 53, 80, 14.25, 0.45, "%");
+        tl.fromTo("#w-bal", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2.4)" }, 14.6);
+        tl.to("#cursor3", { opacity: 0, x: "+=60", duration: 0.3 }, 14.6);
+
+        // F4 Hive AI (u=16.8)
+        const prompt = "Summarize sprint 14";
+        { const o = { v: 0 }; tl.to(o, { v: prompt.length, duration: 0.8, ease: "none", onUpdate: () => { $("#ai-txt").textContent = prompt.slice(0, Math.round(o.v)); } }, 17.0); }
+        tl.set("#ai-txt", { textContent: "" }, 0);
+        tl.to("#ai-send", { scale: 0.9, duration: 0.08, yoyo: true, repeat: 1 }, 17.85);
+        tl.fromTo("#ai-status", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.25 }, 17.9);
+        tl.fromTo("#ai-status .dot", { scale: 0.6 }, { scale: 1.2, duration: 0.2, yoyo: true, repeat: 3 }, 17.9);
+        tl.set("#ai-st", { textContent: "Done · 48 tasks read" }, 18.15);
+        tl.fromTo("#ai-card", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 18.05);
+        tl.fromTo("#ai-card .ai-li", { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.14, ease: "power3.out" }, 18.2);
+        tl.fromTo("#ai-post", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 18.65);
+
+        // RECAP 19.2–22.08
+        wordsIn("#r-h .w", 19.25, { y: 60, d: 0.45, s: 0.12 });
+        tl.fromTo("#r-sub", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 19.6);
+        $$("#r-grid .tile").forEach((t, i) => {
+          tl.fromTo(t, { opacity: 0, y: 60, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.6)" }, 19.62 + i * B);
+        });
+        tl.fromTo(".rv1", { scaleX: 0 }, { scaleX: 1, transformOrigin: "0% 50%", duration: 0.5, stagger: 0.1, ease: "power3.out" }, 19.8);
+        tl.fromTo("#r-cam", { scale: 1.03 }, { scale: 1, transformOrigin: "50% 50%", duration: 2.6, ease: "power1.out" }, 19.2);
+        tl.to("#r-cam", { scale: 0.92, opacity: 0, duration: 0.3, ease: "power2.in" }, 21.8);
+
+        // END 22.08–25
+        tl.fromTo("#e-logo", { scale: 0, rotation: -60 }, { scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.8)" }, 22.12);
+        tl.fromTo("#e-wm", { opacity: 0, x: -40, filter: "blur(14px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.5, ease: "power3.out" }, 22.3);
+        tl.fromTo("#e-line", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 22.7);
+        tl.fromTo("#e-cta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 23.0);
+        tl.fromTo("#e-mark", { scale: 0.98 }, { scale: 1.02, duration: 2.9, ease: "none" }, 22.08);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

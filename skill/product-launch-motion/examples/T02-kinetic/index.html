@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Anton"; src: url(assets/fonts/anton-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-900-normal.woff2) format("woff2"); font-weight: 900; }
+      :root {
+        --black: #0B0A08; --cream: #F1EADB; --accent: #FF4F1A;
+        --on-black-dim: #A39C8F; --on-cream-dim: #5B554B;
+        --r-pill: 999px; --r-sm: 10px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1080px; overflow: hidden; background: var(--black); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; background: var(--black); font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
+      .card { position: absolute; inset: 0; overflow: hidden; }
+      .bk { background: var(--black); color: var(--cream); }
+      .cr { background: var(--cream); color: var(--black); }
+      .ac { background: var(--accent); color: var(--black); }
+      .stage { position: absolute; inset: 0; }
+      .d { font-family: "Anton", sans-serif; font-weight: 400; text-transform: uppercase; line-height: 0.88; letter-spacing: -0.01em; white-space: nowrap; position: absolute; }
+      .blk { display: block; }
+
+      /* furniture */
+      #furn { position: absolute; inset: 0; pointer-events: none; }
+      .fu { position: absolute; font-family: "Inter"; font-weight: 700; font-size: 28px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; color: var(--on-black-dim); }
+      #fu-tl { left: 56px; top: 44px; }
+      #fu-tr { right: 56px; top: 44px; font-weight: 500; }
+      #fu-bl { left: 56px; bottom: 40px; font-weight: 500; }
+      #fu-br { right: 56px; bottom: 40px; font-weight: 500; }
+      .rule { position: absolute; left: 56px; right: 56px; height: 2px; background: var(--on-black-dim); transform-origin: 0 50%; }
+      #rule-t { top: 98px; }
+      #rule-b { bottom: 96px; }
+
+      /* C1 */
+      #c1-a { left: 52px; top: 150px; font-size: 410px; }
+      #c1-b { left: 52px; top: 520px; font-size: 410px; }
+      #c1-caret { position: absolute; left: 0; top: 0; width: 26px; height: 300px; background: var(--accent); }
+
+      /* C2 */
+      .c2l { left: 56px; font-size: 150px; }
+      #c2-1 { top: 128px; }
+      #c2-2 { top: 262px; }
+      #c2-3 { top: 396px; }
+      #c2-box { position: absolute; left: 44px; top: 548px; height: 404px; width: 640px; background: var(--accent); transform-origin: 0 50%; }
+      #c2-4 { left: 64px; top: 566px; font-size: 420px; color: var(--black); }
+
+      /* C3 */
+      #c3-1 { left: 56px; top: 270px; font-size: 205px; }
+      #c3-2 { left: 56px; top: 470px; font-size: 205px; }
+      #c3-bar { position: absolute; left: 56px; top: 680px; width: 968px; height: 26px; background: var(--accent); transform-origin: 0 50%; }
+
+      /* C4 typing */
+      #c4-type { position: absolute; left: 0; right: 0; top: 440px; text-align: center; font-family: "Inter"; font-weight: 900; font-size: 170px; letter-spacing: -0.06em; line-height: 1; white-space: nowrap; color: var(--cream); }
+      #c4-caret { display: inline-block; width: 14px; height: 150px; background: var(--accent); vertical-align: -14px; margin-left: 10px; }
+
+      /* C5 drop */
+      #c5-q { left: 48px; top: 120px; font-size: 300px; }
+      #c5-3 { right: 44px; top: 380px; font-size: 640px; line-height: 0.86; }
+      #c5-h { left: 52px; top: 760px; font-size: 170px; }
+
+      /* C6 ladder */
+      .c6w { left: 56px; top: 170px; font-size: 200px; }
+      .c6m { position: absolute; left: 0; right: 0; top: 400px; height: 480px; overflow: hidden; }
+      .c6v { left: 50px; top: 20px; }
+      .c6i { position: absolute; left: 60px; top: 880px; font-family: "Inter"; font-weight: 700; font-size: 30px; letter-spacing: 0.12em; white-space: nowrap; }
+
+      /* C7 */
+      #c7-1 { left: 56px; top: 240px; font-size: 205px; }
+      #c7-2 { left: 56px; top: 440px; font-size: 168px; }
+      #c7-bar { position: absolute; left: 56px; top: 615px; width: 968px; height: 26px; background: var(--accent); transform-origin: 0 50%; }
+
+      /* C8 end */
+      #c8-logo { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; align-items: center; gap: 34px; }
+      #c8-mark { width: 150px; height: 150px; flex: none; }
+      #c8-word { font-family: "Inter"; font-weight: 900; font-size: 168px; letter-spacing: -0.065em; line-height: 1; color: var(--black); white-space: nowrap; }
+      #c8-badge { width: 112px; height: 132px; border-radius: 18px; background: var(--black); color: var(--cream); font-family: "Anton"; font-size: 110px; line-height: 132px; text-align: center; flex: none; }
+      #c8-avail { position: absolute; left: 0; right: 0; top: 590px; text-align: center; font-family: "Inter"; font-weight: 500; font-size: 52px; letter-spacing: -0.02em; color: var(--black); white-space: nowrap; }
+      #c8-cta { position: absolute; left: 0; right: 0; top: 700px; display: flex; justify-content: center; }
+      #c8-pill { height: 96px; padding: 0 48px; border-radius: var(--r-pill); background: var(--black); color: var(--cream); display: flex; align-items: center; gap: 22px; font-family: "Inter"; font-weight: 700; font-size: 38px; letter-spacing: -0.01em; white-space: nowrap; }
+      #c8-pill .u { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="18" data-width="1080" data-height="1080">
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="mus" src="assets/music/bgm-ad.mp3" data-start="0" data-duration="18" data-media-start="57.49" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":16.6,"v":1},{"t":18,"v":0}]}]}'></audio>
+      <audio id="sx-s0" src="assets/sfx/click.mp3" data-start="0.1" data-duration="0.36" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx-s1" src="assets/sfx/click.mp3" data-start="0.578" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-s3" src="assets/sfx/click.mp3" data-start="1.533" data-duration="0.36" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx-s4" src="assets/sfx/click.mp3" data-start="2.01" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-s5" src="assets/sfx/click.mp3" data-start="2.488" data-duration="0.36" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx-s6" src="assets/sfx/impact-bass-2.mp3" data-start="2.965" data-duration="1.2" data-track-index="23" data-volume="0.2"></audio>
+      <audio id="sx-s9" src="assets/sfx/click.mp3" data-start="4.398" data-duration="0.36" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx-s10" src="assets/sfx/click.mp3" data-start="4.875" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-rise" src="assets/sfx/riser.mp3" data-start="4.4" data-duration="2.86" data-media-start="7.0" data-track-index="24" data-volume="0.28"></audio>
+      <audio id="sx-k1" src="assets/sfx/key-press.mp3" data-start="6.4" data-duration="0.3" data-track-index="25" data-volume="0.18"></audio>
+      <audio id="sx-k2" src="assets/sfx/key-press.mp3" data-start="6.5" data-duration="0.3" data-track-index="26" data-volume="0.18"></audio>
+      <audio id="sx-k3" src="assets/sfx/key-press.mp3" data-start="6.6" data-duration="0.3" data-track-index="30" data-volume="0.18"></audio>
+      <audio id="sx-k4" src="assets/sfx/key-press.mp3" data-start="6.7" data-duration="0.3" data-track-index="31" data-volume="0.18"></audio>
+      <audio id="sx-k5" src="assets/sfx/key-press.mp3" data-start="6.8" data-duration="0.3" data-track-index="32" data-volume="0.18"></audio>
+      <audio id="sx-k6" src="assets/sfx/key-press.mp3" data-start="6.9" data-duration="0.3" data-track-index="33" data-volume="0.18"></audio>
+      <audio id="sx-drop" src="assets/sfx/impact-bass-1.mp3" data-start="7.262" data-duration="2.1" data-track-index="27" data-volume="0.45"></audio>
+      <audio id="sx-three" src="assets/sfx/impact-bass-2.mp3" data-start="7.74" data-duration="1.4" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-s17" src="assets/sfx/click.mp3" data-start="8.218" data-duration="0.36" data-track-index="21" data-volume="0.25"></audio>
+      <audio id="sx-l1" src="assets/sfx/whoosh-short.mp3" data-start="9.12" data-duration="0.57" data-track-index="28" data-volume="0.18"></audio>
+      <audio id="sx-l2" src="assets/sfx/whoosh-short.mp3" data-start="10.555" data-duration="0.57" data-track-index="29" data-volume="0.18"></audio>
+      <audio id="sx-l3" src="assets/sfx/whoosh-short.mp3" data-start="11.99" data-duration="0.57" data-track-index="28" data-volume="0.18"></audio>
+      <audio id="sx-s28" src="assets/sfx/click.mp3" data-start="13.47" data-duration="0.36" data-track-index="21" data-volume="0.25"></audio>
+      <audio id="sx-s30" src="assets/sfx/click.mp3" data-start="14.425" data-duration="0.36" data-track-index="22" data-volume="0.25"></audio>
+      <audio id="sx-end" src="assets/sfx/impact-bass-2.mp3" data-start="15.38" data-duration="1.6" data-track-index="23" data-volume="0.2"></audio>
+      <audio id="sx-e2" src="assets/sfx/click-soft.mp3" data-start="15.858" data-duration="0.36" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx-e3" src="assets/sfx/click-soft.mp3" data-start="16.335" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+
+      <!-- C1 0 – n3 -->
+      <section id="c1" class="card bk clip" data-start="0" data-duration="1.533" data-track-index="1">
+        <div id="c1-st" class="stage">
+          <div id="c1-a" data-layout-allow-overlap class="d">Blank</div>
+          <div id="c1-b" data-layout-allow-overlap class="d">Page?</div>
+          <div id="c1-caret"></div>
+        </div>
+      </section>
+
+      <!-- C2 n3 – n9 -->
+      <section id="c2" class="card cr clip" data-start="1.533" data-duration="2.865" data-track-index="2">
+        <div id="c2-st" class="stage">
+          <div id="c2-1" data-layout-allow-overlap class="d c2l">AI drafts</div>
+          <div id="c2-2" data-layout-allow-overlap class="d c2l">that sound</div>
+          <div id="c2-3" data-layout-allow-overlap class="d c2l">like</div>
+          <div id="c2-box"></div>
+          <div id="c2-4" data-layout-allow-overlap class="d">AI?</div>
+        </div>
+      </section>
+
+      <!-- C3 n9 – n13 -->
+      <section id="c3" class="card bk clip" data-start="4.398" data-duration="1.91" data-track-index="3">
+        <div id="c3-st" class="stage">
+          <div id="c3-1" data-layout-allow-overlap class="d">We rewrote</div>
+          <div id="c3-2" data-layout-allow-overlap class="d">the model.</div>
+          <div id="c3-bar"></div>
+        </div>
+      </section>
+
+      <!-- C4 n13 – n15 typing -->
+      <section id="c4" class="card bk clip" data-start="6.308" data-duration="0.954" data-track-index="4">
+        <div id="c4-type"><span id="c4-t"></span><span id="c4-caret"></span></div>
+      </section>
+
+      <!-- C5 n15 – n19 DROP -->
+      <section id="c5" class="card ac clip" data-start="7.262" data-duration="1.91" data-track-index="5">
+        <div id="c5-st" class="stage">
+          <div id="c5-3" data-layout-allow-overlap class="d">3</div>
+          <div id="c5-q" data-layout-allow-overlap class="d">Quillo</div>
+          <div id="c5-h" data-layout-allow-overlap class="d">is here.</div>
+        </div>
+      </section>
+
+      <!-- C6 ladder -->
+      <section id="c6a" class="card bk clip" data-start="9.172" data-duration="1.433" data-track-index="6">
+        <div data-layout-allow-overlap class="d c6w">Writes</div>
+        <div class="c6m"><div id="c6a-v" data-layout-allow-overlap class="d c6v" style="font-size:330px; color:var(--accent)">faster.</div></div>
+        <div class="c6i" style="color:var(--on-black-dim)">01 / 03</div>
+      </section>
+      <section id="c6b" class="card cr clip" data-start="10.605" data-duration="1.433" data-track-index="7">
+        <div data-layout-allow-overlap class="d c6w">Writes</div>
+        <div class="c6m"><div id="c6b-v" data-layout-allow-overlap class="d c6v" style="font-size:252px">smarter.</div></div>
+        <div class="c6i" style="color:var(--on-cream-dim)">02 / 03</div>
+      </section>
+      <section id="c6c" class="card ac clip" data-start="12.038" data-duration="1.432" data-track-index="8">
+        <div data-layout-allow-overlap class="d c6w">Writes</div>
+        <div class="c6m"><div id="c6c-v" data-layout-allow-overlap class="d c6v" style="font-size:258px">like you.</div></div>
+        <div class="c6i" style="color:var(--black)">03 / 03</div>
+      </section>
+
+      <!-- C7 n28 – n32 -->
+      <section id="c7" class="card bk clip" data-start="13.47" data-duration="1.91" data-track-index="9">
+        <div id="c7-st" class="stage">
+          <div id="c7-1" data-layout-allow-overlap class="d">Your voice.</div>
+          <div id="c7-2" data-layout-allow-overlap class="d">Only sharper.</div>
+          <div id="c7-bar"></div>
+        </div>
+      </section>
+
+      <!-- C8 end n32 – 18 -->
+      <section id="c8" class="card cr clip" data-start="15.38" data-duration="2.62" data-track-index="10">
+        <div id="c8-st" class="stage">
+          <div id="c8-logo">
+            <svg id="c8-mark" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="60" fill="#FF4F1A"/>
+              <path d="M60 20 L86 62 L60 100 L34 62 Z" fill="#0B0A08"/>
+              <path d="M60 62 V100" stroke="#FF4F1A" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="60" cy="58" r="7" fill="#FF4F1A"/>
+            </svg>
+            <div id="c8-word">quillo</div>
+            <div id="c8-badge">3</div>
+          </div>
+          <div id="c8-avail">Available today</div>
+          <div id="c8-cta"><div id="c8-pill">Try it free <span class="u">quillo.ai</span></div></div>
+        </div>
+      </section>
+
+      <!-- FURNITURE (whole film) -->
+      <div id="furn-clip" class="clip" data-start="0" data-duration="18" data-track-index="15" style="position:absolute; inset:0; z-index:15; pointer-events:none">
+        <div id="furn">
+          <div id="fu-tl" class="fu">Quillo</div>
+          <div id="fu-tr" class="fu">Nº 3 — Model release</div>
+          <div id="fu-bl" class="fu">Issue <span id="fu-n">01</span> / 08</div>
+          <div id="fu-br" class="fu">quillo.ai</div>
+          <div id="rule-t" class="rule"></div>
+          <div id="rule-b" class="rule"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const B = (n) => +(0.1 + 0.4775 * n).toFixed(4);
+        const $ = (s) => document.querySelector(s);
+        const tl = gsap.timeline({ paused: true });
+
+        const stomp = (sel, at, o = {}) => tl.fromTo(sel, { scale: o.from ?? 1.32, opacity: 0, transformOrigin: o.origin ?? "0% 50%" }, { scale: 1, opacity: 1, duration: o.d ?? 0.2, ease: "expo.out" }, at);
+        const shake = (sel, at, amp = 10) => {
+          const k = [[1, -0.7], [-0.8, 0.6], [0.5, -0.4], [-0.25, 0.2], [0, 0]];
+          k.forEach(([x, y], i) => tl.set(sel, { x: x * amp, y: y * amp }, at + i * 0.034));
+        };
+        const swapUp = (sel, at) => tl.fromTo(sel, { yPercent: 105 }, { yPercent: 0, duration: 0.26, ease: "expo.out" }, at);
+
+        // furniture colour per card background
+        const furnTheme = (at, c, n) => {
+          tl.set(".fu", { color: c }, at);
+          tl.set(".rule", { backgroundColor: c }, at);
+          tl.set("#fu-n", { textContent: String(n).padStart(2, "0") }, at);
+        };
+        const DIMB = "#A39C8F", DIMC = "#5B554B", BLK = "#0B0A08";
+        furnTheme(0, DIMB, 1);
+        furnTheme(1.533, DIMC, 2);
+        furnTheme(4.398, DIMB, 3);
+        furnTheme(6.308, DIMB, 4);
+        furnTheme(7.262, BLK, 5);
+        furnTheme(9.172, DIMB, 6);
+        furnTheme(10.605, DIMC, 6);
+        furnTheme(12.038, BLK, 6);
+        furnTheme(13.47, DIMB, 7);
+        furnTheme(15.38, DIMC, 8);
+        tl.fromTo(".rule", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "expo.out", stagger: 0.1 }, 0.05);
+        tl.fromTo(".fu", { opacity: 0 }, { opacity: 1, duration: 0.3, stagger: 0.05 }, 0.05);
+
+        // C1 BLANK PAGE?
+        stomp("#c1-a", B(0));
+        stomp("#c1-b", B(1));
+        tl.set("#c1-caret", { x: 992, y: 548, opacity: 0 }, 0);
+        [[B(1) + 0.1, 1], [B(2) - 0.05, 0], [B(2) + 0.2, 1], [B(3) - 0.15, 0]].forEach(([t, o]) => tl.set("#c1-caret", { opacity: o }, t));
+        tl.fromTo("#c1-st", { scale: 1 }, { scale: 1.04, duration: 1.5, ease: "none", transformOrigin: "50% 50%" }, 0);
+
+        // C2 AI drafts that sound like AI?
+        stomp("#c2-1", B(3));
+        stomp("#c2-2", B(4));
+        stomp("#c2-3", B(5));
+        tl.fromTo("#c2-box", { scaleX: 0 }, { scaleX: 1, duration: 0.18, ease: "expo.out" }, B(6));
+        stomp("#c2-4", B(6) + 0.04, { from: 1.5 });
+        shake("#c2-st", B(6), 12);
+        tl.fromTo("#c2-st", { scale: 1 }, { scale: 1.035, duration: 2.8, ease: "none", transformOrigin: "30% 60%" }, B(3));
+
+        // C3 We rewrote the model.
+        stomp("#c3-1", B(9));
+        stomp("#c3-2", B(10));
+        tl.fromTo("#c3-bar", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, B(11));
+        tl.fromTo("#c3-st", { scale: 1 }, { scale: 1.05, duration: 1.9, ease: "none", transformOrigin: "0% 50%" }, B(9));
+
+        // C4 typing "quillo" into the riser
+        const word = "quillo";
+        tl.set("#c4-t", { textContent: "" }, 6.308);
+        for (let i = 1; i <= word.length; i++) tl.set("#c4-t", { textContent: word.slice(0, i) }, 6.4 + (i - 1) * 0.1);
+        [[6.308, 1], [7.03, 0], [7.15, 1]].forEach(([t, o]) => tl.set("#c4-caret", { opacity: o }, t));
+        tl.fromTo("#c4-type", { scale: 1 }, { scale: 1.08, duration: 0.95, ease: "power2.in" }, 6.308);
+
+        // C5 DROP: QUILLO / 3 / IS HERE.
+        stomp("#c5-q", B(15), { from: 1.6 });
+        shake("#c5-st", B(15), 16);
+        tl.fromTo("#c5-3", { scale: 1.7, opacity: 0, transformOrigin: "100% 40%" }, { scale: 1, opacity: 1, duration: 0.24, ease: "expo.out" }, B(16));
+        shake("#c5-st", B(16), 10);
+        stomp("#c5-h", B(17));
+        tl.fromTo("#c5-st", { scale: 1 }, { scale: 1.04, duration: 1.9, ease: "none", transformOrigin: "50% 50%" }, B(15) + 0.2);
+
+        // C6 ladder: Writes faster. / smarter. / like you.
+        swapUp("#c6a-v", B(19));
+        swapUp("#c6b-v", B(22));
+        swapUp("#c6c-v", B(25));
+        tl.fromTo("#c6a .c6w", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.2, ease: "expo.out" }, B(19));
+        tl.fromTo("#c6a-v", { scale: 1 }, { scale: 1.035, duration: 1.4, ease: "none", transformOrigin: "0% 50%" }, B(19));
+        tl.fromTo("#c6b-v", { scale: 1 }, { scale: 1.035, duration: 1.4, ease: "none", transformOrigin: "0% 50%" }, B(22));
+        tl.fromTo("#c6c-v", { scale: 1 }, { scale: 1.035, duration: 1.4, ease: "none", transformOrigin: "0% 50%" }, B(25));
+
+        // C7 Your voice. Only sharper.
+        stomp("#c7-1", B(28));
+        stomp("#c7-2", B(30));
+        tl.fromTo("#c7-bar", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "expo.out" }, B(30) + 0.12);
+        tl.fromTo("#c7-st", { scale: 1 }, { scale: 1.04, duration: 1.9, ease: "none", transformOrigin: "0% 50%" }, B(28));
+
+        // C8 end card
+        tl.fromTo("#c8-mark", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(2)" }, B(32));
+        tl.fromTo("#c8-word", { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.35, ease: "expo.out" }, B(32) + 0.08);
+        tl.fromTo("#c8-badge", { scale: 1.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: "expo.out" }, B(32) + 0.2);
+        tl.fromTo("#c8-avail", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.35, ease: "expo.out" }, B(33));
+        tl.fromTo("#c8-pill", { opacity: 0, y: 18, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "expo.out" }, B(34));
+        tl.fromTo("#c8-st", { scale: 1 }, { scale: 1.03, duration: 2.6, ease: "none", transformOrigin: "50% 50%" }, B(32));
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

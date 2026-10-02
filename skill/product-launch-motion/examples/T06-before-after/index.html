@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Fraunces"; src: url(assets/fonts/fraunces-latin-600-normal.woff2) format("woff2"); font-weight: 600; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      :root {
+        /* Notewell brand */
+        --paper: #F7F4EE; --ink: #191714; --ink6: #4A463F; --ink4: #6B665D;
+        --forest: #1E4D3A; --forest2: #163A2C; --mint: #9BE3C0; --mint-soft: #E3F5EC;
+        --marigold: #F2B544; --line: #E7E1D6; --white: #FFFFFF;
+        /* before (desaturated) */
+        --g-bg: #DCDBD8; --g-card: #F1F0EE; --g-line: #C9C7C3; --g-ink: #2E2D2B; --g-mid: #5C5A57; --g-soft: #A6A4A0;
+        --r: 28px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--paper); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; font-family: "Inter", Arial, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .fill { position: absolute; inset: 0; }
+      .abs { position: absolute; }
+      .w { display: inline-block; margin-right: 0.22em; }
+      .w:last-child { margin-right: 0; }
+      .chip { display: inline-flex; align-items: center; gap: 12px; height: 60px; padding: 0 26px; border-radius: 999px; font-weight: 700; font-size: 28px; letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+      .hl { position: absolute; left: 120px; right: 120px; top: 380px; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 84px; line-height: 1.04; letter-spacing: -0.02em; }
+
+      /* ---------------- BEFORE WORLD ---------------- */
+      #bw { background: var(--g-bg); }
+      #bw .grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(46,45,43,0.06) 2px, transparent 2px), linear-gradient(90deg, rgba(46,45,43,0.06) 2px, transparent 2px); background-size: 60px 60px; }
+      #b-cam { position: absolute; inset: 0; transform-origin: 50% 55%; }
+      #b-chip { position: absolute; left: 120px; top: 270px; background: var(--g-ink); color: var(--g-card); }
+      .hl.b { color: var(--g-ink); }
+      #b-win { position: absolute; left: 90px; top: 640px; width: 900px; height: 740px; background: var(--g-card); border: 2px solid var(--g-line); border-radius: var(--r); box-shadow: 0 30px 60px -30px rgba(0,0,0,0.35); overflow: hidden; }
+      #b-bar { position: absolute; left: 0; right: 0; top: 0; height: 86px; background: #E4E3E0; border-bottom: 2px solid var(--g-line); }
+      .tab { position: absolute; top: 18px; width: 230px; height: 68px; border-radius: 16px 16px 0 0; background: #D3D2CE; border: 2px solid var(--g-line); border-bottom: none; display: flex; align-items: center; gap: 10px; padding: 0 18px; font-size: 28px; font-weight: 500; color: var(--g-mid); white-space: nowrap; overflow: hidden; }
+      .tab i { width: 14px; height: 14px; border-radius: 50%; background: var(--g-soft); flex: none; }
+      .tab.on { background: var(--g-card); color: var(--g-ink); }
+      #b-doc { position: absolute; left: 50px; right: 50px; top: 130px; }
+      #b-doc .ttl { font-weight: 700; font-size: 40px; color: var(--g-ink); height: 60px; }
+      .bl { font-size: 34px; line-height: 1.25; color: var(--g-ink); height: 64px; white-space: nowrap; position: relative; }
+      .bl.strike::after { content: ""; position: absolute; left: 0; top: 22px; height: 3px; width: var(--sw, 0px); background: var(--g-mid); }
+      .caret { display: inline-block; width: 3px; height: 38px; background: var(--g-ink); vertical-align: -6px; margin-left: 2px; }
+      #b-timer { position: absolute; left: 640px; top: 600px; height: 84px; padding: 0 30px; border-radius: 999px; background: var(--g-ink); color: #F1F0EE; display: flex; align-items: center; gap: 14px; font-weight: 700; font-size: 44px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; box-shadow: 0 16px 34px -14px rgba(0,0,0,0.5); }
+      #b-timer .dot { width: 18px; height: 18px; border-radius: 50%; background: #F1F0EE; }
+      #b-call { position: absolute; left: 600px; top: 1150px; width: 400px; height: 270px; background: #3A3936; border-radius: 22px; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; box-shadow: 0 24px 50px -20px rgba(0,0,0,0.55); }
+      .tile { background: #55534F; border-radius: 12px; display: grid; place-items: center; position: relative; }
+      .tile b { width: 64px; height: 64px; border-radius: 50%; background: #807D78; color: #EDEBE7; display: grid; place-items: center; font-size: 28px; font-weight: 700; }
+      #b-speak { position: absolute; left: 14px; top: 14px; width: 181px; height: 116px; border: 4px solid #EDEBE7; border-radius: 12px; }
+      #b-sticky { position: absolute; left: 70px; top: 1190px; width: 300px; height: 230px; background: #E6E3D8; padding: 30px 28px; box-shadow: 0 18px 30px -16px rgba(0,0,0,0.45); font-size: 32px; font-weight: 500; line-height: 1.25; color: var(--g-ink); }
+      .toast { position: absolute; left: 560px; width: 440px; height: 104px; background: #2E2D2B; color: #EDEBE7; border-radius: 20px; display: flex; align-items: center; gap: 18px; padding: 0 24px; font-size: 28px; font-weight: 500; box-shadow: 0 18px 40px -16px rgba(0,0,0,0.5); }
+      .toast .ic { width: 52px; height: 52px; border-radius: 14px; background: #5C5A57; flex: none; display: grid; place-items: center; }
+      .toast small { display: block; font-size: 28px; color: #BDBAB5; font-weight: 400; }
+
+      /* ---------------- AFTER WORLD ---------------- */
+      #aw { background: var(--paper); clip-path: inset(0px 0px 0px 1080px); }
+      #aw .dots { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(30,77,58,0.13) 2px, transparent 2.5px); background-size: 48px 48px; }
+      #aw .glow { position: absolute; left: -200px; top: 900px; width: 1480px; height: 1100px; background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(155,227,192,0.55), rgba(155,227,192,0) 70%); }
+      #a-chip { position: absolute; left: 600px; top: 270px; background: var(--forest); color: var(--white); }
+      .hl.a { color: var(--ink); }
+      .hl.a em { font-style: normal; color: var(--forest); }
+      #a-win { position: absolute; left: 90px; top: 640px; width: 900px; height: 740px; background: var(--white); border: 2px solid var(--line); border-radius: var(--r); box-shadow: 0 40px 80px -36px rgba(30,77,58,0.45), 0 8px 20px -10px rgba(25,23,20,0.12); overflow: hidden; }
+      #a-head { position: absolute; left: 44px; right: 44px; top: 38px; display: flex; align-items: center; gap: 20px; }
+      #a-head .mk { width: 64px; height: 64px; flex: none; }
+      #a-head .tt { font-weight: 700; font-size: 36px; letter-spacing: -0.01em; }
+      #a-head .st { font-size: 28px; color: var(--ink4); margin-top: 4px; }
+      #a-ready { position: absolute; left: 600px; top: 600px; height: 84px; padding: 0 30px; border-radius: 999px; background: var(--forest); color: var(--white); display: flex; align-items: center; gap: 14px; font-weight: 700; font-size: 40px; letter-spacing: -0.01em; box-shadow: 0 18px 36px -14px rgba(30,77,58,0.6); }
+      #a-ready .ck { width: 44px; height: 44px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; color: var(--forest); }
+      #a-body { position: absolute; left: 44px; right: 44px; top: 150px; }
+      .sec-l { font-size: 28px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--forest); margin: 22px 0 12px; display: flex; align-items: center; gap: 12px; }
+      .sec-l::before { content: ""; width: 12px; height: 12px; border-radius: 3px; background: var(--mint); }
+      #a-sum { font-size: 34px; line-height: 1.32; color: var(--ink); }
+      .hlt { position: absolute; left: 50px; top: 6px; height: 42px; width: 0; background: rgba(155,227,192,0.55); border-radius: 8px; }
+      .dec > span:not(.hlt) { position: relative; }
+      .dec { position: relative; display: flex; align-items: center; gap: 16px; height: 54px; font-size: 32px; font-weight: 500; }
+      .dec .c { width: 38px; height: 38px; border-radius: 50%; background: var(--mint-soft); color: var(--forest); display: grid; place-items: center; flex: none; }
+      .act { display: flex; align-items: center; gap: 18px; height: 72px; border: 2px solid var(--line); border-radius: 18px; padding: 0 18px; margin-bottom: 10px; font-size: 32px; font-weight: 500; }
+      .act .av { width: 48px; height: 48px; border-radius: 50%; color: var(--white); display: grid; place-items: center; font-weight: 700; font-size: 26px; flex: none; }
+      .act .t { flex: 1; }
+      .act .d { height: 44px; line-height: 44px; padding: 0 16px; border-radius: 999px; background: #FBEFD3; color: #7A5410; font-size: 28px; font-weight: 700; }
+      #a-toast { position: absolute; left: 140px; top: 1430px; width: 800px; height: 104px; background: var(--forest2); color: var(--white); border-radius: 24px; display: flex; align-items: center; gap: 20px; padding: 0 28px; font-size: 32px; font-weight: 500; box-shadow: 0 24px 50px -20px rgba(22,58,44,0.6); }
+      #a-toast .ic { width: 56px; height: 56px; border-radius: 50%; background: var(--mint); color: var(--forest); display: grid; place-items: center; flex: none; }
+      #a-toast b { color: var(--mint); font-weight: 700; }
+
+      /* ---------------- WIPE ---------------- */
+      #wipe { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+      #wipe-line { position: absolute; left: -4px; top: 0; width: 8px; height: 1920px; background: var(--white); box-shadow: 0 0 30px rgba(0,0,0,0.25); }
+      #wipe-knob { position: absolute; left: -52px; top: 952px; width: 104px; height: 104px; border-radius: 50%; background: var(--white); box-shadow: 0 14px 34px -8px rgba(0,0,0,0.4); display: grid; place-items: center; color: var(--forest); }
+
+      /* ---------------- METRIC ---------------- */
+      #m-panel { position: absolute; inset: 0; background: var(--forest); }
+      #m-panel .rings { position: absolute; left: 540px; top: 860px; width: 0; height: 0; }
+      .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(155,227,192,0.16); }
+      #m-eye { position: absolute; left: 120px; right: 120px; top: 360px; text-align: center; font-weight: 700; font-size: 36px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mint); }
+      #m-old { position: absolute; left: 0; right: 0; top: 460px; text-align: center; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 150px; line-height: 1; color: #B9D3C6; letter-spacing: -0.02em; }
+      #m-old span { position: relative; display: inline-block; }
+      #m-strike { position: absolute; left: -16px; top: 52%; height: 10px; width: 0; border-radius: 6px; background: var(--marigold); }
+      #m-arrow { position: absolute; left: 490px; top: 660px; width: 100px; height: 100px; color: var(--mint); }
+      #m-new { position: absolute; left: 0; right: 0; top: 780px; text-align: center; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 290px; line-height: 1; color: var(--mint); letter-spacing: -0.03em; white-space: nowrap; }
+      #m-new small { font-size: 150px; letter-spacing: -0.02em; }
+      #m-note { position: absolute; left: 0; right: 0; top: 1130px; text-align: center; font-size: 30px; color: #CFE3D8; font-weight: 500; letter-spacing: 0.02em; }
+
+      /* ---------------- END ---------------- */
+      #e-bg { position: absolute; inset: 0; background: var(--paper); }
+      #e-mark { position: absolute; left: 470px; top: 470px; width: 140px; height: 140px; }
+      #e-word { position: absolute; left: 0; right: 0; top: 650px; text-align: center; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 132px; letter-spacing: -0.03em; line-height: 1; color: var(--ink); }
+      #e-tag { position: absolute; left: 120px; right: 120px; top: 840px; text-align: center; font-size: 48px; font-weight: 500; letter-spacing: -0.01em; color: var(--forest); }
+      #e-avail { position: absolute; left: 120px; right: 120px; top: 920px; text-align: center; font-size: 36px; color: var(--ink6); }
+      #e-cta { position: absolute; left: 0; right: 0; top: 1030px; display: flex; justify-content: center; }
+      #e-cta .btn { height: 96px; padding: 0 44px; border-radius: 999px; background: var(--forest); color: var(--white); font-weight: 700; font-size: 38px; display: flex; align-items: center; gap: 16px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="19.5" data-width="1080" data-height="1920">
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="mus" src="assets/music/bgm-tech.mp3" data-start="0" data-duration="19.5" data-media-start="24.0" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":18.2,"v":1},{"t":19.5,"v":0}]}]}'></audio>
+      <audio id="sx-ty1" src="assets/sfx/typing.mp3" data-start="0.45" data-duration="1.5" data-track-index="21" data-volume="0.16"></audio>
+      <audio id="sx-ty2" src="assets/sfx/typing.mp3" data-start="2.2" data-duration="1.5" data-track-index="21" data-volume="0.16"></audio>
+      <audio id="sx-ty3" src="assets/sfx/typing.mp3" data-start="3.9" data-duration="1.5" data-track-index="21" data-volume="0.16"></audio>
+      <audio id="sx-ty4" src="assets/sfx/typing.mp3" data-start="5.7" data-duration="1.5" data-track-index="21" data-volume="0.14"></audio>
+      <audio id="sx-t1" src="assets/sfx/click-soft.mp3" data-start="1.3" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-t2" src="assets/sfx/click-soft.mp3" data-start="2.6" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-t3" src="assets/sfx/click-soft.mp3" data-start="3.5" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-t4" src="assets/sfx/click-soft.mp3" data-start="5.0" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-t5" src="assets/sfx/click-soft.mp3" data-start="6.2" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-to1" src="assets/sfx/pop.mp3" data-start="4.3" data-duration="0.7" data-track-index="23" data-volume="0.18"></audio>
+      <audio id="sx-to2" src="assets/sfx/pop.mp3" data-start="6.7" data-duration="0.7" data-track-index="23" data-volume="0.18"></audio>
+      <audio id="sx-rise" src="assets/sfx/riser.mp3" data-start="6.3" data-duration="1.75" data-media-start="8.25" data-track-index="24" data-volume="0.28"></audio>
+      <audio id="sx-wh1" src="assets/sfx/whoosh.mp3" data-start="7.6" data-duration="0.57" data-track-index="25" data-volume="0.3"></audio>
+      <audio id="sx-imp" src="assets/sfx/impact-bass-1.mp3" data-start="8.05" data-duration="2.1" data-track-index="26" data-volume="0.4"></audio>
+      <audio id="sx-wh2" src="assets/sfx/whoosh-short.mp3" data-start="8.75" data-duration="0.57" data-track-index="25" data-volume="0.22"></audio>
+      <audio id="sx-a1" src="assets/sfx/pop.mp3" data-start="9.3" data-duration="0.7" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-a2" src="assets/sfx/click-soft.mp3" data-start="10.3" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-a3" src="assets/sfx/click-soft.mp3" data-start="8.5" data-duration="0.36" data-track-index="28" data-volume="0.22"></audio>
+      <audio id="sx-a4" src="assets/sfx/click-soft.mp3" data-start="11.5" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-a5" src="assets/sfx/click-soft.mp3" data-start="12.0" data-duration="0.36" data-track-index="28" data-volume="0.22"></audio>
+      <audio id="sx-a6" src="assets/sfx/pop.mp3" data-start="12.55" data-duration="0.7" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-wh3" src="assets/sfx/whoosh.mp3" data-start="13.8" data-duration="0.57" data-track-index="25" data-volume="0.3"></audio>
+      <audio id="sx-k1" src="assets/sfx/click.mp3" data-start="14.75" data-duration="0.36" data-track-index="22" data-volume="0.25"></audio>
+      <audio id="sx-imp2" src="assets/sfx/impact-bass-2.mp3" data-start="15.75" data-duration="2.5" data-track-index="27" data-volume="0.3"></audio>
+      <audio id="sx-wh4" src="assets/sfx/whoosh.mp3" data-start="16.6" data-duration="0.57" data-track-index="25" data-volume="0.28"></audio>
+      <audio id="sx-e1" src="assets/sfx/pop.mp3" data-start="17.0" data-duration="0.7" data-track-index="23" data-volume="0.22"></audio>
+
+      <!-- ================= BEFORE ================= -->
+      <section id="bw" class="scene clip" data-start="0" data-duration="9.4" data-track-index="1" style="z-index:1">
+        <div class="grid"></div>
+        <div id="b-cam">
+          <div id="b-win">
+            <div id="b-bar"></div>
+            <div id="b-doc">
+              <div class="ttl" id="b-ttl" data-layout-allow-overlap></div>
+              <div class="bl" id="bl1" data-layout-allow-overlap></div>
+              <div class="bl" id="bl2" data-layout-allow-overlap></div>
+              <div class="bl strike" id="bl3" data-layout-allow-overlap></div>
+              <div class="bl" id="bl4" data-layout-allow-overlap></div>
+              <div class="bl" id="bl5" data-layout-allow-overlap></div>
+              <div class="bl" id="bl6" data-layout-allow-overlap></div>
+            </div>
+          </div>
+          <div id="b-sticky" data-layout-allow-overlap>ask Dana re: budget??</div>
+          <div id="b-call">
+            <div class="tile"><b data-layout-allow-overlap>DK</b></div><div class="tile"><b data-layout-allow-overlap>MA</b></div><div class="tile"><b data-layout-allow-overlap>LT</b></div><div class="tile"><b data-layout-allow-overlap>JS</b></div>
+            <div id="b-speak"></div>
+          </div>
+          <div id="b-toast1" class="toast" style="top:930px"><div class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EDEBE7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div>Team chat<small>6 new messages</small></div></div>
+          <div id="b-toast2" class="toast" style="top:1050px"><div class="ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EDEBE7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div>Next call<small>starts in 2 min</small></div></div>
+          <div id="b-timer"><span class="dot"></span><span id="b-tnum" data-layout-allow-overlap>00:00</span></div>
+        </div>
+        <div id="b-chip" class="chip"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>Before</div>
+        <div id="bh1" class="hl b"><span class="w">Still</span><span class="w">typing</span><span class="w">meeting</span><span class="w">notes?</span></div>
+        <div id="bh2" class="hl b"><span class="w">Listening,</span><span class="w">typing,</span><span class="w">losing</span><span class="w">the</span><span class="w">thread.</span></div>
+        <div id="bh3" class="hl b"><span class="w">45</span><span class="w">minutes</span><span class="w">after</span><span class="w">every</span><span class="w">call.</span></div>
+      </section>
+
+      <!-- ================= AFTER ================= -->
+      <section id="aw-clip" class="scene clip" data-start="0" data-duration="14.6" data-track-index="2" style="z-index:2">
+        <div id="aw" class="fill">
+          <div class="dots"></div>
+          <div class="glow"></div>
+          <div id="a-cam" class="fill">
+            <div id="a-win">
+              <div id="a-head">
+                <svg class="mk" viewBox="0 0 64 64"><rect width="64" height="64" rx="18" fill="#1E4D3A"/><rect x="16" y="19" width="32" height="5" rx="2.5" fill="#FFFFFF"/><rect x="16" y="30" width="24" height="5" rx="2.5" fill="#FFFFFF"/><rect x="16" y="41" width="14" height="5" rx="2.5" fill="#FFFFFF"/><circle cx="44" cy="43.5" r="5.5" fill="#9BE3C0"/></svg>
+                <div><div class="tt">Q3 Planning Sync</div><div class="st">32 min · 5 people · auto-notes</div></div>
+              </div>
+              <div id="a-body">
+                <div class="sec-l" id="a-l1">Summary</div>
+                <div id="a-sum"><span class="w">Launch</span><span class="w">moves</span><span class="w">to</span><span class="w">Oct</span><span class="w">14.</span><span class="w">Budget</span><span class="w">approved</span><span class="w">for</span><span class="w">two</span><span class="w">hires.</span></div>
+                <div class="sec-l" id="a-l2">Decisions</div>
+                <div class="dec" data-hw="410"><span class="hlt"></span><span class="c"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Launch date locked: Oct 14</span></div>
+                <div class="dec" data-hw="400"><span class="hlt"></span><span class="c"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Open 2 engineering roles</span></div>
+                <div class="sec-l" id="a-l3">Action items</div>
+                <div class="act"><span class="av" style="background:#1E4D3A">M</span><span class="t">Maya — final launch deck</span><span class="d">Fri</span></div>
+                <div class="act"><span class="av" style="background:#C2843A">L</span><span class="t">Leo — post both roles</span><span class="d">Tue</span></div>
+              </div>
+            </div>
+            <div id="a-ready"><span class="ck"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Ready in 2 min</div>
+            <div id="a-toast"><span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span><span>Shared to <b>#q3-launch</b></span></div>
+          </div>
+          <div id="a-chip" class="chip"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>After</div>
+          <div id="ah1" class="hl a"><span class="w">Notes</span><span class="w">that</span><span class="w"><em>write</em></span><span class="w"><em>themselves.</em></span></div>
+          <div id="ah2" class="hl a"><span class="w">Decisions,</span><span class="w">owners,</span><span class="w">next</span><span class="w">steps.</span><span class="w"><em>Done.</em></span></div>
+        </div>
+        <div id="wipe">
+          <div id="wipe-line"></div>
+          <div id="wipe-knob"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6-6 6 6 6"/><path d="m15 6 6 6-6 6"/></svg></div>
+        </div>
+      </section>
+
+      <!-- ================= END (under metric) ================= -->
+      <section id="s-end" class="scene clip" data-start="16.4" data-duration="3.1" data-track-index="3" style="z-index:3">
+        <div id="e-bg"></div>
+        <svg id="e-mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="18" fill="#1E4D3A"/><rect x="16" y="19" width="32" height="5" rx="2.5" fill="#FFFFFF"/><rect x="16" y="30" width="24" height="5" rx="2.5" fill="#FFFFFF"/><rect x="16" y="41" width="14" height="5" rx="2.5" fill="#FFFFFF"/><circle cx="44" cy="43.5" r="5.5" fill="#9BE3C0"/></svg>
+        <div id="e-word">Notewell</div>
+        <div id="e-tag"><span class="w">Just</span><span class="w">show</span><span class="w">up.</span><span class="w">We'll</span><span class="w">take</span><span class="w">notes.</span></div>
+        <div id="e-avail">Free on Mac, Windows &amp; web</div>
+        <div id="e-cta"><div class="btn">Try it free · notewell.app</div></div>
+      </section>
+
+      <!-- ================= METRIC ================= -->
+      <section id="s-met" class="scene clip" data-start="13.75" data-duration="3.4" data-track-index="4" style="z-index:4">
+        <div id="m-panel">
+          <div class="rings" id="m-rings"></div>
+          <div id="m-eye">Time to shareable notes</div>
+          <div id="m-old"><span>45 min<i id="m-strike"></i></span></div>
+          <svg id="m-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16"/><path d="m5 13 7 7 7-7"/></svg>
+          <div id="m-new"><span id="m-num">45</span><small> min</small></div>
+          <div id="m-note">Illustrative example</div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => Array.from(document.querySelectorAll(s));
+        const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (sel, at, o = {}) => tl.fromTo(sel, { opacity: 0, y: o.y ?? 34, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.5, stagger: o.s ?? 0.08, ease: "power3.out" }, at);
+        const wordsOut = (sel, at) => tl.to(sel, { opacity: 0, y: -24, filter: "blur(12px)", duration: 0.28, stagger: 0.03, ease: "power2.in" }, at);
+
+        // ---------- BEFORE: tabs ----------
+        const tabNames = ["Video call", "Agenda", "Notes (2)", "Team chat", "Recording", "Notes FINAL"];
+        const bar = $("#b-bar");
+        const tabs = tabNames.map((n, i) => {
+          const t = el("div", "tab" + (i === 2 ? " on" : ""), `<i></i>${n}`);
+          t.setAttribute("data-layout-allow-occlusion", ""); t.setAttribute("data-layout-allow-overlap", ""); t.style.left = (20 + i * 128) + "px"; t.style.zIndex = String(i === 2 ? 50 : i);
+          bar.appendChild(t); return t;
+        });
+        // typed lines
+        const typed = [
+          ["#b-ttl", "Q3 sync — notes", 0.35, 0.6],
+          ["#bl1", "• launch oct 14?? or 21", 1.0, 0.9],
+          ["#bl2", "• budget — ask Dana", 2.2, 0.8],
+          ["#bl3", "• who owns the deck", 3.2, 0.8],
+          ["#bl4", "• hiring… missed this", 4.2, 0.9],
+          ["#bl5", "• wait what did Leo say", 5.4, 1.0],
+          ["#bl6", "• follow up w/ ??", 6.6, 0.8],
+        ];
+        typed.forEach(([sel, text, at, dur], idx) => {
+          const node = $(sel); node.textContent = "";
+          const o = { p: 0 };
+          const last = idx === typed.length - 1;
+          tl.to(o, { p: 1, duration: dur, ease: "none", onUpdate: () => {
+            const n = Math.round(o.p * text.length);
+            const caret = (o.p < 1 || last) && o.p > 0 ? '<span class="caret"></span>' : "";
+            node.innerHTML = text.slice(0, n).replace(/&/g, "&amp;") + caret;
+          } }, at);
+        });
+        // strike a line (crossed out)
+        tl.fromTo("#bl3", { "--sw": "0px" }, { "--sw": "380px", duration: 0.35, ease: "power2.out" }, 4.05);
+
+        // ---------- BEFORE timeline ----------
+        tl.fromTo("#b-cam", { scale: 1.0 }, { scale: 1.06, duration: 7.9, ease: "none" }, 0);
+        tl.fromTo("#b-chip", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.1);
+        tl.fromTo("#b-win", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.0);
+        tl.fromTo("#b-timer", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, 0.3);
+        // tabs pile up: first three at once, the rest pop
+        tl.fromTo(tabs.slice(0, 3), { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.08, ease: "power3.out" }, 0.25);
+        [1.3, 2.6, 5.0].forEach((t, i) => tl.fromTo(tabs[3 + i], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.25, ease: "back.out(2)" }, t));
+        // timer races 00:00 → 45:00
+        { const o = { v: 0 }; const n = $("#b-tnum");
+          tl.to(o, { v: 45 * 60, duration: 7.4, ease: "power1.in", onUpdate: () => { const s = Math.round(o.v); n.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); } }, 0.3); }
+        tl.to("#b-timer", { scale: 1.12, duration: 0.16, yoyo: true, repeat: 1, ease: "power2.out" }, 7.55);
+        // sticky + call + toasts
+        tl.fromTo("#b-sticky", { opacity: 0, rotation: -14, y: 60 }, { opacity: 1, rotation: -5, y: 0, duration: 0.45, ease: "back.out(1.8)" }, 3.5);
+        tl.fromTo("#b-call", { opacity: 0, x: 120, rotation: 0 }, { opacity: 1, x: 0, rotation: 3, duration: 0.5, ease: "power3.out" }, 1.3);
+        tl.fromTo("#b-speak", { x: 0, y: 0 }, { keyframes: [{ x: 191, y: 0, duration: 0.01 }, { x: 191, y: 0, duration: 1.2 }, { x: 0, y: 126, duration: 0.01 }, { x: 0, y: 126, duration: 1.4 }, { x: 191, y: 126, duration: 0.01 }, { x: 191, y: 126, duration: 1.6 }, { x: 0, y: 0, duration: 0.01 }] }, 2.4);
+        tl.fromTo("#b-toast1", { opacity: 0, x: 140 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 4.3);
+        tl.fromTo("#b-toast2", { opacity: 0, x: 140 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, 6.7);
+        // headlines
+        wordsIn("#bh1 .w", 0.2);
+        wordsOut("#bh1 .w", 2.55);
+        wordsIn("#bh2 .w", 2.8, { s: 0.07 });
+        wordsOut("#bh2 .w", 5.15);
+        wordsIn("#bh3 .w", 5.4, { s: 0.08 });
+        wordsOut("#bh3 .w", 7.55);
+
+        // ---------- WIPE ----------
+        // slider appears, drags to the middle on the drop, holds the split, then completes
+        tl.fromTo("#wipe", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 7.6);
+        const wipeTo = (x, at, dur, ease) => {
+          tl.to("#wipe", { x: x, duration: dur, ease }, at);
+          tl.to("#aw", { clipPath: `inset(0px 0px 0px ${x}px)`, duration: dur, ease }, at);
+        };
+        tl.set("#wipe", { x: 1080 }, 0);
+        wipeTo(540, 7.75, 0.3, "power3.in");
+        tl.to("#wipe-knob", { scale: 1.15, duration: 0.14, yoyo: true, repeat: 1, ease: "power2.out" }, 8.05);
+        wipeTo(0, 8.8, 0.55, "power3.inOut");
+        tl.to("#wipe", { opacity: 0, duration: 0.15 }, 9.3);
+
+        // ---------- AFTER timeline ----------
+        tl.fromTo("#a-chip", { x: 0 }, { x: -480, duration: 0.5, ease: "power3.inOut" }, 9.1);
+        tl.fromTo("#a-ready", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2.4)" }, 8.05);
+        wordsIn("#ah1 .w", 9.25, { s: 0.1 });
+        wordsOut("#ah1 .w", 11.3);
+        wordsIn("#ah2 .w", 11.5, { s: 0.08 });
+        wordsOut("#ah2 .w", 13.55);
+        // card content resolves cleanly (pre-hidden until split)
+        tl.fromTo("#a-l1", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3 }, 8.0);
+        tl.fromTo("#a-sum .w", { opacity: 0.0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.35, stagger: 0.07, ease: "power2.out" }, 8.15);
+        tl.fromTo("#a-l2", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3 }, 8.4);
+        tl.fromTo(".dec", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.35, stagger: 0.15, ease: "power3.out" }, 8.45);
+        tl.fromTo(".dec .c", { scale: 0.3 }, { scale: 1, duration: 0.35, stagger: 0.15, ease: "back.out(3)" }, 8.45);
+        tl.fromTo("#a-l3", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3 }, 8.6);
+        tl.fromTo(".act", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15, ease: "power3.out" }, 8.65);
+        tl.fromTo(".hlt", { width: 0 }, { width: (i, t) => t.parentNode.dataset.hw + "px", duration: 0.45, stagger: 1.2, ease: "power2.inOut" }, 10.3);
+        tl.to(".act .d", { scale: 1.15, duration: 0.16, yoyo: true, repeat: 1, stagger: 0.15, ease: "power2.out" }, 12.0);
+        tl.fromTo("#a-toast", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.6)" }, 12.55);
+        tl.fromTo("#a-cam", { scale: 1 }, { scale: 1.035, transformOrigin: "50% 50%", duration: 5.5, ease: "none" }, 8.6);
+        tl.fromTo("#a-win", { y: 0 }, { y: -10, duration: 5, ease: "none" }, 8.6);
+
+        // ---------- METRIC ----------
+        const rings = $("#m-rings");
+        [260, 420, 600, 800, 1020].forEach((d) => { const r = el("div", "ring"); r.style.width = r.style.height = d + "px"; r.style.left = r.style.top = (-d / 2) + "px"; rings.appendChild(r); });
+        tl.fromTo("#m-panel", { yPercent: 100 }, { yPercent: 0, duration: 0.6, ease: "power3.inOut" }, 13.75);
+        tl.fromTo("#m-rings", { scale: 0.7, opacity: 0 }, { scale: 1.05, opacity: 1, duration: 2.8, ease: "power2.out" }, 14.1);
+        tl.fromTo("#m-eye", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 14.2);
+        tl.fromTo("#m-old", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 14.3);
+        tl.fromTo("#m-strike", { width: 0 }, { width: 520, duration: 0.35, ease: "power2.out" }, 14.75);
+        tl.fromTo("#m-arrow", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 14.85);
+        tl.fromTo("#m-new", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, 14.95);
+        { const o = { v: 45 }; const n = $("#m-num"); tl.to(o, { v: 2, duration: 0.8, ease: "power3.out", onUpdate: () => { n.textContent = String(Math.round(o.v)); } }, 14.95); }
+        tl.to("#m-new", { scale: 1.06, duration: 0.15, yoyo: true, repeat: 1, ease: "power2.out" }, 15.75);
+        tl.fromTo("#m-note", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 15.3);
+        tl.to("#m-panel", { yPercent: -100, duration: 0.6, ease: "power3.inOut" }, 16.55);
+
+        // ---------- END ----------
+        tl.fromTo("#e-mark", { opacity: 0, scale: 0.4, rotation: -12 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(2)" }, 16.95);
+        tl.fromTo("#e-word", { opacity: 0, y: 30, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6, ease: "power3.out" }, 17.1);
+        wordsIn("#e-tag .w", 17.4, { y: 20, s: 0.06 });
+        tl.fromTo("#e-avail", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 17.85);
+        tl.fromTo("#e-cta", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 18.05);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

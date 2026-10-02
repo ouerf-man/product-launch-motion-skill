@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-900-normal.woff2) format("woff2"); font-weight: 900; }
+      @font-face { font-family: "JetBrains Mono"; src: url(assets/fonts/JetBrainsMono-400.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "JetBrains Mono"; src: url(assets/fonts/JetBrainsMono-700.woff2) format("woff2"); font-weight: 700; }
+      :root {
+        --bg: #07080B; --panel: #0E1015; --panel2: #13161D; --line: #232733; --line2: #2E3342;
+        --ink: #EDEEF2; --ink2: #C3C7D1; --mute: #9298A6; --dark: #0B0C14;
+        --accent: #7B8CFF; --accent2: #A3AEFF;
+        --d1: #7B8CFF; --d2: #3DDC97; --d3: #F5B454; --d4: #FF7A9C; --d5: #5CD3F5;
+        --r-lg: 22px; --r-md: 14px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; font-family: "Inter", Arial, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; background: var(--bg); }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .fill { position: absolute; inset: 0; }
+      .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+      .w { display: inline-block; margin-right: 0.24em; }
+      .w:last-child { margin-right: 0; }
+      .gridbg { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.035) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(255,255,255,0.035) 1.5px, transparent 1.5px); background-size: 96px 96px; }
+      .wm { font-weight: 700; letter-spacing: -0.055em; line-height: 1; }
+
+      /* teaser */
+      #t-lock { position: absolute; left: 0; right: 0; top: 250px; display: flex; justify-content: center; align-items: center; gap: 22px; }
+      #t-lock svg { width: 72px; height: 72px; }
+      #t-lock .wm { font-size: 72px; }
+      #t-title { position: absolute; left: 0; right: 0; top: 380px; text-align: center; font-size: 220px; font-weight: 900; letter-spacing: -0.055em; line-height: 1; white-space: nowrap; }
+      #t-sub { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font-size: 52px; font-weight: 500; color: var(--ink2); letter-spacing: -0.02em; white-space: nowrap; }
+      #t-days { position: absolute; left: 0; right: 0; top: 790px; display: flex; justify-content: center; gap: 20px; }
+      .tday { width: 180px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+      .tday i { display: block; width: 180px; height: 10px; border-radius: 5px; background: var(--line2); }
+      .tday span { font-size: 28px; color: var(--mute); }
+      #t-glow { position: absolute; left: 360px; top: 160px; width: 1200px; height: 760px; border-radius: 50%; background: radial-gradient(closest-side, rgba(123,140,255,0.22), rgba(123,140,255,0)); }
+
+      /* persistent top bar */
+      #bar { position: absolute; left: 120px; right: 120px; top: 64px; height: 90px; display: flex; align-items: center; justify-content: space-between; }
+      #bar .lk { display: flex; align-items: center; gap: 16px; }
+      #bar .lk svg { width: 46px; height: 46px; }
+      #bar .lk .wm { font-size: 40px; }
+      #bar .lk .tag { font-size: 28px; color: var(--mute); margin-left: 8px; letter-spacing: 0.08em; }
+      #rail { display: flex; gap: 14px; }
+      .seg { width: 112px; display: flex; flex-direction: column; gap: 12px; }
+      .seg .tr { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+      .seg .fl { height: 100%; width: 100%; border-radius: 4px; transform-origin: 0% 50%; }
+      .seg span { font-size: 28px; color: var(--mute); }
+
+      /* day template */
+      .glow { position: absolute; left: 820px; top: 40px; width: 1300px; height: 1100px; border-radius: 50%; }
+      .d-left { position: absolute; left: 112px; top: 0; bottom: 0; width: 800px; display: flex; flex-direction: column; justify-content: center; padding-bottom: 20px; }
+      .d-idx { margin-left: 8px; font-size: 34px; font-weight: 700; letter-spacing: 0.04em; }
+      .d-title { margin-top: 26px; width: 780px; font-size: 112px; font-weight: 700; letter-spacing: -0.05em; line-height: 1.0; }
+      .d-title .w { margin-right: 0; }
+      .d-sub { margin-top: 40px; margin-left: 8px; font-size: 44px; color: var(--ink2); font-weight: 500; letter-spacing: -0.02em; white-space: nowrap; }
+      .d-date { position: absolute; left: 120px; top: 900px; font-size: 28px; color: var(--mute); display: flex; align-items: center; gap: 14px; }
+      .d-date i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+      .stage { position: absolute; left: 960px; top: 230px; width: 840px; height: 720px; perspective: 2400px; }
+      .pnl { position: absolute; inset: 0; background: var(--panel); border: 1.5px solid var(--line); border-radius: var(--r-lg); overflow: hidden; box-shadow: 0 60px 120px -40px rgba(0,0,0,0.8); }
+      .pnl .edge { position: absolute; left: 0; right: 0; top: 0; height: 3px; }
+      .ph { height: 84px; display: flex; align-items: center; padding: 0 32px; gap: 14px; border-bottom: 1.5px solid var(--line); font-size: 28px; color: var(--ink2); }
+      .ph b { color: var(--ink); font-weight: 500; }
+      .ph .tg { margin-left: auto; height: 44px; padding: 0 16px; border-radius: 10px; border: 1.5px solid var(--line2); display: flex; align-items: center; font-size: 28px; color: var(--ink2); }
+      .pb { position: absolute; left: 0; right: 0; top: 84px; bottom: 0; padding: 28px 32px; }
+      .pill { height: 46px; padding: 0 16px; border-radius: 999px; display: inline-flex; align-items: center; gap: 10px; font-size: 28px; font-weight: 500; white-space: nowrap; }
+
+      /* D1 previews */
+      .br { height: 184px; border-bottom: 1.5px solid var(--line); position: relative; }
+      .br .nm { position: absolute; left: 0; top: 26px; font-size: 32px; color: var(--ink); }
+      .br .mt { position: absolute; left: 0; top: 76px; font-size: 28px; color: var(--mute); }
+      .br .st { position: absolute; right: 0; top: 22px; }
+      .br .url { position: absolute; left: 0; top: 122px; font-size: 28px; color: var(--accent2); display: flex; align-items: center; gap: 10px; }
+      .st .bd { background: rgba(245,180,84,0.13); color: var(--d3); }
+      .st .ok { background: rgba(61,220,151,0.12); color: var(--d2); }
+      .st .ok, .st .bd { position: absolute; right: 0; top: 0; }
+
+      /* D2 rollbacks */
+      .dr { height: 112px; display: flex; align-items: center; gap: 22px; border-bottom: 1.5px solid var(--line); position: relative; }
+      .dr .v { font-size: 34px; font-weight: 700; width: 92px; }
+      .dr .c { font-size: 28px; color: var(--ink2); flex: 1; white-space: nowrap; }
+      .dr .slot { width: 210px; height: 46px; position: relative; }
+      .dr .slot .pill { position: absolute; right: 0; top: 0; }
+      .live { background: rgba(61,220,151,0.12); color: var(--d2); }
+      .err { background: rgba(255,122,156,0.14); color: var(--d4); }
+      #rb-btn { background: var(--ink); color: var(--dark); font-weight: 700; }
+      #rb-toast { position: absolute; left: 32px; right: 32px; bottom: 30px; height: 84px; border-radius: 16px; background: var(--panel2); border: 1.5px solid var(--line2); display: flex; align-items: center; gap: 16px; padding: 0 24px; font-size: 30px; }
+      #rb-toast b { color: var(--d2); }
+      #cur2 { position: absolute; left: 0; top: 0; width: 46px; height: 46px; }
+
+      /* D3 logs */
+      #lg-filter { display: flex; gap: 12px; margin-bottom: 16px; }
+      #lg-win { position: absolute; left: 32px; right: 32px; top: 104px; bottom: 28px; overflow: hidden; }
+      #lg-list { position: absolute; left: 0; right: 0; top: 0; }
+      .ll { height: 54px; display: flex; align-items: center; gap: 22px; font-size: 28px; white-space: nowrap; border-radius: 10px; padding: 0 12px; }
+      .ll .t { color: var(--mute); }
+      .ll .rg { color: var(--accent2); }
+      .ll .s2 { color: var(--d2); }
+      .ll .s5 { color: var(--d4); font-weight: 700; }
+      .ll .p { color: var(--ink); }
+      .ll.hot { background: rgba(255,122,156,0.10); }
+
+      /* D4 secrets */
+      .sr { height: 96px; display: flex; align-items: center; gap: 18px; border-bottom: 1.5px solid var(--line); }
+      .sr .k { width: 330px; font-size: 28px; color: var(--ink); white-space: nowrap; }
+      .sr .val { width: 150px; font-size: 28px; color: var(--mute); letter-spacing: 0.1em; }
+      .sr .envs { display: flex; gap: 8px; }
+      .env { height: 40px; width: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 28px; font-weight: 700; background: var(--panel2); color: var(--mute); border: 1.5px solid var(--line2); }
+      #sc-ban { position: absolute; left: 32px; right: 32px; bottom: 30px; height: 96px; border-radius: 16px; background: rgba(255,122,156,0.10); border: 1.5px solid rgba(255,122,156,0.35); display: flex; align-items: center; gap: 16px; padding: 0 26px; font-size: 32px; font-weight: 500; }
+
+      /* D5 terminal */
+      .term { font-size: 30px; line-height: 1.75; white-space: nowrap; }
+      .term .pr { color: var(--d5); }
+      .term .ok { color: var(--d2); }
+      .term .dm { color: var(--mute); }
+      #tm-car { display: inline-block; width: 16px; height: 34px; background: var(--ink); vertical-align: -6px; margin-left: 4px; }
+      #tm-live { margin-top: 26px; height: 96px; border-radius: 16px; background: rgba(92,211,245,0.10); border: 1.5px solid rgba(92,211,245,0.4); display: flex; align-items: center; gap: 18px; padding: 0 26px; font-size: 32px; }
+
+      /* bumper */
+      .bump { position: absolute; inset: 0; display: grid; place-items: center; }
+      .bump .bt { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 240px; letter-spacing: -0.04em; color: var(--dark); white-space: nowrap; }
+
+      /* recap */
+      #r-h { position: absolute; left: 112px; top: 92px; font-size: 104px; font-weight: 700; letter-spacing: -0.05em; line-height: 1; white-space: nowrap; }
+      #r-h .dim { color: var(--mute); }
+      #r-grid { position: absolute; left: 120px; top: 260px; width: 1680px; height: 740px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 22px; }
+      .tile { position: relative; border-radius: var(--r-lg); background: var(--panel); border: 1.5px solid var(--line); overflow: hidden; padding: 34px 36px; }
+      .tile .bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
+      .tile .dl { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 28px; }
+      .tile .tt { font-size: 50px; font-weight: 700; letter-spacing: -0.04em; margin-top: 10px; line-height: 1.05; }
+      .tile .gl { position: absolute; right: 30px; bottom: 26px; width: 120px; height: 120px; }
+      #brand-tile { background: var(--accent); border-color: var(--accent); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 18px; }
+      #brand-tile .wm { font-size: 76px; color: var(--dark); }
+      #brand-tile .lk { display: flex; align-items: center; gap: 16px; }
+      #brand-tile .lk svg { width: 68px; height: 68px; }
+      #brand-tile .ln { font-size: 30px; font-weight: 500; color: var(--dark); }
+
+      /* end */
+      #e-bg { position: absolute; inset: 0; background: var(--accent); }
+      #e-lock { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; align-items: center; gap: 34px; }
+      #e-lock svg { width: 150px; height: 150px; }
+      #e-lock .wm { font-size: 180px; color: var(--dark); }
+      #e-line { position: absolute; left: 0; right: 0; top: 590px; text-align: center; font-size: 52px; font-weight: 500; color: var(--dark); letter-spacing: -0.02em; }
+      #e-cta { position: absolute; left: 0; right: 0; top: 710px; display: flex; justify-content: center; }
+      #e-cta .p { height: 92px; padding: 0 40px; border-radius: 999px; background: var(--dark); color: var(--ink); font-size: 36px; display: flex; align-items: center; gap: 14px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="24" data-width="1920" data-height="1080">
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="mus" src="assets/music/bgm-tech.mp3" data-start="0" data-duration="24" data-media-start="29.04" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":22.6,"v":1},{"t":24,"v":0}]}]}'></audio>
+      <audio id="sx-rise" src="assets/sfx/riser.mp3" data-start="0.6" data-duration="2.4" data-media-start="7.6" data-track-index="21" data-volume="0.22"></audio>
+      <audio id="sx-k1" src="assets/sfx/click-soft.mp3" data-start="1.0" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-k2" src="assets/sfx/click-soft.mp3" data-start="1.3" data-duration="0.36" data-track-index="23" data-volume="0.2"></audio>
+      <audio id="sx-k3" src="assets/sfx/click-soft.mp3" data-start="1.6" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-k4" src="assets/sfx/click-soft.mp3" data-start="1.9" data-duration="0.36" data-track-index="23" data-volume="0.2"></audio>
+      <audio id="sx-k5" src="assets/sfx/click-soft.mp3" data-start="2.2" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-b1" src="assets/sfx/whoosh-short.mp3" data-start="2.72" data-duration="0.57" data-track-index="24" data-volume="0.26"></audio>
+      <audio id="sx-imp" src="assets/sfx/impact-bass-1.mp3" data-start="3.0" data-duration="2.1" data-track-index="25" data-volume="0.4"></audio>
+      <audio id="sx-d1" src="assets/sfx/pop.mp3" data-start="4.6" data-duration="0.7" data-track-index="26" data-volume="0.22"></audio>
+      <audio id="sx-b2" src="assets/sfx/whoosh-short.mp3" data-start="5.72" data-duration="0.57" data-track-index="24" data-volume="0.26"></audio>
+      <audio id="sx-d2" src="assets/sfx/click.mp3" data-start="7.35" data-duration="0.36" data-track-index="22" data-volume="0.28"></audio>
+      <audio id="sx-d2b" src="assets/sfx/pop.mp3" data-start="7.7" data-duration="0.7" data-track-index="26" data-volume="0.22"></audio>
+      <audio id="sx-b3" src="assets/sfx/whoosh-short.mp3" data-start="8.72" data-duration="0.57" data-track-index="24" data-volume="0.26"></audio>
+      <audio id="sx-d3" src="assets/sfx/click-soft.mp3" data-start="10.6" data-duration="0.36" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-b4" src="assets/sfx/whoosh-short.mp3" data-start="11.72" data-duration="0.57" data-track-index="24" data-volume="0.26"></audio>
+      <audio id="sx-d4" src="assets/sfx/pop.mp3" data-start="13.9" data-duration="0.7" data-track-index="26" data-volume="0.22"></audio>
+      <audio id="sx-b5" src="assets/sfx/whoosh-short.mp3" data-start="14.72" data-duration="0.57" data-track-index="24" data-volume="0.26"></audio>
+      <audio id="sx-ty" src="assets/sfx/typing.mp3" data-start="15.4" data-duration="0.8" data-track-index="27" data-volume="0.22"></audio>
+      <audio id="sx-d5" src="assets/sfx/pop.mp3" data-start="16.95" data-duration="0.7" data-track-index="26" data-volume="0.22"></audio>
+      <audio id="sx-wr" src="assets/sfx/whoosh.mp3" data-start="17.9" data-duration="0.57" data-track-index="24" data-volume="0.3"></audio>
+      <audio id="sx-r1" src="assets/sfx/click-soft.mp3" data-start="18.5" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-r2" src="assets/sfx/click-soft.mp3" data-start="18.75" data-duration="0.36" data-track-index="23" data-volume="0.2"></audio>
+      <audio id="sx-r3" src="assets/sfx/click-soft.mp3" data-start="19.0" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-r4" src="assets/sfx/click-soft.mp3" data-start="19.25" data-duration="0.36" data-track-index="23" data-volume="0.2"></audio>
+      <audio id="sx-r5" src="assets/sfx/click-soft.mp3" data-start="19.5" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-r6" src="assets/sfx/pop.mp3" data-start="19.75" data-duration="0.7" data-track-index="26" data-volume="0.24"></audio>
+      <audio id="sx-we" src="assets/sfx/whoosh.mp3" data-start="21.0" data-duration="0.57" data-track-index="24" data-volume="0.3"></audio>
+      <audio id="sx-ie" src="assets/sfx/impact-bass-2.mp3" data-start="21.4" data-duration="2.5" data-track-index="25" data-volume="0.3"></audio>
+
+      <!-- ================= TEASER 0–3 ================= -->
+      <section id="s-teaser" class="scene clip" data-start="0" data-duration="3.0" data-track-index="1">
+        <div class="gridbg"></div>
+        <div id="t-glow"></div>
+        <div id="t-cam" class="fill">
+          <div id="t-lock"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#7B8CFF"/><path d="M23 15v34" stroke="#0B0C14" stroke-width="6" stroke-linecap="round"/><path d="M23 41c0-11 18-8 18-19" stroke="#0B0C14" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="41" cy="19" r="6" fill="#0B0C14"/></svg><span class="wm">driftbase</span></div>
+          <div id="t-title"><span class="w">Launch</span><span class="w">Week</span></div>
+          <div id="t-sub"><span class="w">Five</span><span class="w">days.</span><span class="w">Five</span><span class="w">launches.</span></div>
+          <div id="t-days"></div>
+        </div>
+      </section>
+
+      <!-- ================= DAYS (one template) ================= -->
+      <section id="day1" class="scene clip" data-start="3.0" data-duration="3.0" data-track-index="2"></section>
+      <section id="day2" class="scene clip" data-start="6.0" data-duration="3.0" data-track-index="2"></section>
+      <section id="day3" class="scene clip" data-start="9.0" data-duration="3.0" data-track-index="2"></section>
+      <section id="day4" class="scene clip" data-start="12.0" data-duration="3.0" data-track-index="2"></section>
+      <section id="day5" class="scene clip" data-start="15.0" data-duration="3.0" data-track-index="2"></section>
+
+      <!-- persistent series bar -->
+      <div id="s-bar" class="scene clip" data-start="3.0" data-duration="15.0" data-track-index="3" style="z-index:3; pointer-events:none">
+        <div id="bar">
+          <div class="lk"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#7B8CFF"/><path d="M23 15v34" stroke="#0B0C14" stroke-width="6" stroke-linecap="round"/><path d="M23 41c0-11 18-8 18-19" stroke="#0B0C14" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="41" cy="19" r="6" fill="#0B0C14"/></svg><span class="wm">driftbase</span><span class="tag mono">LAUNCH WEEK</span></div>
+          <div id="rail"></div>
+        </div>
+      </div>
+
+      <!-- bumpers -->
+      <div id="bp1" class="scene clip" data-start="2.72" data-duration="0.62" data-track-index="4" style="z-index:6"><div class="bump" style="background:var(--d1)"><div class="bt">DAY 1</div></div></div>
+      <div id="bp2" class="scene clip" data-start="5.72" data-duration="0.62" data-track-index="4" style="z-index:6"><div class="bump" style="background:var(--d2)"><div class="bt">DAY 2</div></div></div>
+      <div id="bp3" class="scene clip" data-start="8.72" data-duration="0.62" data-track-index="4" style="z-index:6"><div class="bump" style="background:var(--d3)"><div class="bt">DAY 3</div></div></div>
+      <div id="bp4" class="scene clip" data-start="11.72" data-duration="0.62" data-track-index="4" style="z-index:6"><div class="bump" style="background:var(--d4)"><div class="bt">DAY 4</div></div></div>
+      <div id="bp5" class="scene clip" data-start="14.72" data-duration="0.62" data-track-index="4" style="z-index:6"><div class="bump" style="background:var(--d5)"><div class="bt">DAY 5</div></div></div>
+
+      <!-- ================= RECAP 18–21.6 ================= -->
+      <section id="s-recap" class="scene clip" data-start="18.0" data-duration="3.6" data-track-index="5" style="z-index:4">
+        <div class="gridbg"></div>
+        <div id="r-cam" class="fill">
+          <div id="r-h"><span class="w">Five</span><span class="w">launches.</span><span class="w dim">One</span><span class="w dim">week.</span></div>
+          <div id="r-grid"></div>
+        </div>
+      </section>
+
+      <!-- ================= END 21.3–24 ================= -->
+      <section id="s-end" class="scene clip" data-start="21.35" data-duration="2.65" data-track-index="6" style="z-index:5">
+        <div id="e-bg"></div><div id="e-wrap" class="fill">
+          <div id="e-lock"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#0B0C14"/><path d="M23 15v34" stroke="#7B8CFF" stroke-width="6" stroke-linecap="round"/><path d="M23 41c0-11 18-8 18-19" stroke="#7B8CFF" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="41" cy="19" r="6" fill="#7B8CFF"/></svg><span class="wm">driftbase</span></div>
+          <div id="e-line">Launch Week · all five live today</div>
+          <div id="e-cta"><div class="p mono">driftbase.dev/launch-week<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => Array.from(document.querySelectorAll(s));
+        const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+        const C = ["#7B8CFF", "#3DDC97", "#F5B454", "#FF7A9C", "#5CD3F5"];
+        const RGB = ["123,140,255", "61,220,151", "245,180,84", "255,122,156", "92,211,245"];
+        const DOW = ["MON", "TUE", "WED", "THU", "FRI"];
+        const CHECK = (c, s) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+        const fmt = (n) => Math.round(n).toLocaleString("en-US");
+
+        // teaser day ticks
+        DOW.forEach((d, i) => $("#t-days").appendChild(el("div", "tday", `<i></i><span class="mono">${d}</span>`)));
+        // series rail
+        DOW.forEach((d, i) => $("#rail").appendChild(el("div", "seg", `<div class="tr"><div class="fl" style="background:${C[i]}"></div></div><span class="mono">${d}</span>`)));
+
+        // ---------- day content ----------
+        const days = [
+          { t: ["Preview", "environments"], s: "A URL per branch.", date: "MON · OCT 13 · 9AM PT", crumb: "acme-web /", cb: "Previews", tag: "3 open PRs" },
+          { t: ["Instant", "rollbacks"], s: "Undo in one click.", date: "TUE · OCT 14 · 9AM PT", crumb: "acme-web /", cb: "Deployments", tag: "production" },
+          { t: ["Edge", "logs"], s: "Every request, streamed live.", date: "WED · OCT 15 · 9AM PT", crumb: "acme-web /", cb: "Logs", tag: "live" },
+          { t: ["Secrets", "sync"], s: "One vault, every env.", date: "THU · OCT 16 · 9AM PT", crumb: "acme-web /", cb: "Environment", tag: "4 keys" },
+          { t: ["CLI", "2.0"], s: "Ship from your terminal.", date: "FRI · OCT 17 · 9AM PT", crumb: "~ /", cb: "acme-web", tag: "zsh" },
+        ];
+        const bodies = [
+          // D1
+          () => [["feat/checkout", "PR #482 · 2m ago", "checkout-482.drift.dev"], ["fix/nav-a11y", "PR #479 · 9m ago", "nav-a11y-479.drift.dev"], ["exp/pricing-v3", "PR #476 · 1h ago", "pricing-v3-476.drift.dev"]]
+            .map(([n, m, u]) => `<div class="br"><div class="nm mono">${n}</div><div class="mt">${m}</div><div class="st"><span class="pill bd">● Building</span><span class="pill ok">${CHECK("#3DDC97", 20)} Ready</span></div><div class="url mono">↗ ${u}</div></div>`).join(""),
+          // D2
+          () => [["v42", "main · 2m ago", "err"], ["v41", "main · 1h ago", "rb"], ["v40", "main · 5h ago", ""], ["v39", "main · 1d ago", ""]]
+            .map(([v, c, k]) => `<div class="dr"><span class="v mono">${v}</span><span class="c">${c}</span><span class="slot">${k === "err" ? '<span class="pill err" id="rb-err">5xx ↑ 4.2%</span><span class="pill live" id="rb-live1">● Live</span>' : ""}${k === "rb" ? '<span class="pill" id="rb-btn">Roll back</span><span class="pill live" id="rb-live2">● Live</span>' : ""}</span></div>`).join("")
+            + `<div id="rb-toast">${CHECK("#3DDC97", 30)}<span>Rolled back to v41 in <b>1.2s</b></span></div><svg id="cur2" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.9z" fill="#FFFFFF" stroke="#0B0C10" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
+          // D3
+          () => {
+            const paths = ["/api/cart", "/", "/api/user", "/checkout", "/api/pay", "/blog", "/api/cart", "/api/search", "/api/pay", "/", "/api/user", "/docs", "/api/pay", "/api/cart"];
+            const rg = ["fra1", "iad1", "sfo1", "hnd1", "gru1"];
+            const lines = paths.map((p, i) => {
+              const bad = i === 8 || i === 12;
+              const s = bad ? 500 : 200;
+              const ms = [14, 9, 22, 31, 18, 7, 12, 40, 502, 8, 19, 11, 488, 13][i];
+              return `<div class="ll mono${bad ? " hot" : ""}"><span class="t">12:04:${String(10 + i * 2).padStart(2, "0")}</span><span class="rg">${rg[i % 5]}</span><span class="${bad ? "s5" : "s2"}">${s}</span><span class="p">${p}</span><span class="t">${ms}ms</span></div>`;
+            }).join("");
+            return `<div id="lg-filter"><span class="pill" style="background:rgba(245,180,84,0.13);color:#F5B454">● Live tail</span><span class="pill" style="border:1.5px solid #2E3342;color:#C3C7D1">all regions</span><span class="pill" id="lg-500" style="border:1.5px solid #2E3342;color:#C3C7D1">status: 500</span></div><div id="lg-win"><div id="lg-list">${lines}</div></div>`;
+          },
+          // D4
+          () => [["DATABASE_URL", ["P", "S", "D"]], ["STRIPE_KEY", ["P", "S", "D"]], ["REDIS_URL", ["P", "S", "D"]], ["OPENAI_KEY", ["P", "S", "D"]]]
+            .map(([k, e]) => `<div class="sr"><span class="k mono">${k}</span><span class="val mono">••••••</span><span class="envs">${e.map((x) => `<span class="env mono">${x}</span>`).join("")}</span></div>`).join("")
+            + `<div id="sc-ban">${CHECK("#FF7A9C", 32)}<span>Synced to 3 environments</span></div>`,
+          // D5
+          () => `<div class="term mono"><div><span class="pr">$</span> <span id="tm-cmd"></span><span id="tm-car"></span></div><div class="tl"><span class="ok">✓</span> Built in 6.2s <span class="dm">· 214 files</span></div><div class="tl"><span class="ok">✓</span> Deployed to 18 regions</div><div class="tl"><span class="ok">✓</span> Checks passed <span class="dm">· 12/12</span></div></div><div id="tm-live" class="mono">${CHECK("#5CD3F5", 32)}<span>Live in 9s → acme.drift.dev</span></div>`,
+        ];
+        days.forEach((d, i) => {
+          const s = $("#day" + (i + 1));
+          s.innerHTML = `<div class="gridbg"></div><div class="glow" style="background:radial-gradient(closest-side, rgba(${RGB[i]},0.16), rgba(${RGB[i]},0))"></div>
+            <div class="fill d-wrap">
+              <div class="d-left"><div class="d-idx mono" style="color:${C[i]}">DAY 0${i + 1} / 05</div>
+              <div class="d-title"><span class="w">${d.t[0]}</span> <span class="w">${d.t[1]}</span></div>
+              <div class="d-sub">${d.s.split(" ").map((w) => `<span class="w">${w}</span>`).join("")}</div></div>
+              <div class="d-date mono"><i style="background:${C[i]}"></i>${d.date}</div>
+              <div class="stage"><div class="pnl"><div class="edge" style="background:${C[i]};box-shadow:0 0 24px 2px rgba(${RGB[i]},0.6)"></div>
+                <div class="ph"><span class="mono">${d.crumb}</span><b>${d.cb}</b><span class="tg mono">${d.tag}</span></div>
+                <div class="pb">${bodies[i]()}</div>
+              </div></div>
+            </div>`;
+        });
+
+        // ---------- recap tiles ----------
+        const glyphs = [
+          (c) => `<svg class="gl" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M6 8.5v7M18 10.5c0 4-6 3-11 6"/></svg>`,
+          (c) => `<svg class="gl" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>`,
+          (c) => `<svg class="gl" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h16M4 10h10M4 14h13M4 18h7"/></svg>`,
+          (c) => `<svg class="gl" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>`,
+          (c) => `<svg class="gl" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 4 4-4 4M12 17h7"/></svg>`,
+        ];
+        const grid = $("#r-grid");
+        days.forEach((d, i) => {
+          grid.appendChild(el("div", "tile", `<div class="bar" style="background:${C[i]}"></div><div class="dl" style="color:${C[i]}">DAY ${i + 1} · ${DOW[i]}</div><div class="tt"><span style="display:block">${d.t[0]}</span><span style="display:block">${d.t[1]}</span></div>${glyphs[i](C[i])}`));
+        });
+        const bt = el("div", "tile", `<div class="lk"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#0B0C14"/><path d="M23 15v34" stroke="#7B8CFF" stroke-width="6" stroke-linecap="round"/><path d="M23 41c0-11 18-8 18-19" stroke="#7B8CFF" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="41" cy="19" r="6" fill="#7B8CFF"/></svg><span class="wm">driftbase</span></div><div class="ln mono">LAUNCH WEEK 03</div>`);
+        bt.id = "brand-tile"; grid.appendChild(bt);
+
+        // ---------- timeline ----------
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (sel, at, o = {}) => tl.fromTo(sel, { opacity: 0, y: o.y ?? 36, filter: "blur(12px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.45, stagger: o.s ?? 0.07, ease: "power3.out" }, at);
+        const B = 0.5;
+
+        // TEASER 0–3
+        tl.fromTo("#t-glow", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1.05, duration: 3, ease: "power2.out" }, 0);
+        tl.fromTo("#t-lock", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.05);
+        wordsIn("#t-title .w", 0.2, { y: 70, d: 0.6, s: 0.14 });
+        wordsIn("#t-sub .w", 0.7, { y: 20, s: 0.08 });
+        $$("#t-days .tday").forEach((d, i) => {
+          tl.fromTo(d, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0.9 + i * 0.06);
+          tl.to(d.querySelector("i"), { backgroundColor: C[i], boxShadow: `0 0 18px rgba(${RGB[i]},0.7)`, duration: 0.15 }, 1.0 + i * 0.3);
+          tl.to(d.querySelector("span"), { color: "#EDEEF2", duration: 0.15 }, 1.0 + i * 0.3);
+        });
+        tl.fromTo("#t-cam", { scale: 1 }, { scale: 1.05, transformOrigin: "50% 50%", duration: 3, ease: "power1.in" }, 0);
+
+        // series bar
+        tl.fromTo("#bar", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 3.1);
+        const fls = $$("#rail .fl"), segL = $$("#rail .seg span");
+        tl.set(fls, { scaleX: 0 }, 0);
+
+        // BUMPERS + DAYS
+        for (let i = 0; i < 5; i++) {
+          const T = 3 + i * 3;
+          const bp = `#bp${i + 1} .bump`;
+          tl.fromTo(bp, { xPercent: -100 }, { xPercent: 0, duration: 0.28, ease: "power3.in" }, T - 0.28);
+          tl.fromTo(`${bp} .bt`, { x: -200 }, { x: 120, duration: 0.62, ease: "none" }, T - 0.28);
+          tl.to(bp, { xPercent: 100, duration: 0.32, ease: "power3.out" }, T + 0.02);
+          if (i > 0) { tl.to("#bar", { opacity: 0, duration: 0.05 }, T - 0.12); tl.to("#bar", { opacity: 1, duration: 0.2 }, T + 0.12); }
+          // rail
+          tl.to(fls[i], { scaleX: 1, duration: 0.5, ease: "power2.out" }, T + 0.15);
+          tl.to(segL[i], { color: "#EDEEF2", duration: 0.2 }, T + 0.15);
+          if (i > 0) tl.to(fls[i - 1], { opacity: 0.45, duration: 0.3 }, T + 0.15);
+          // template text
+          const d = `#day${i + 1}`;
+          tl.fromTo(`${d} .d-idx`, { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, T + 0.1);
+          wordsIn(`${d} .d-title .w`, T + 0.14, { y: 60, d: 0.5, s: 0.1 });
+          wordsIn(`${d} .d-sub .w`, T + 0.4, { y: 18, d: 0.4, s: 0.05 });
+          tl.fromTo(`${d} .d-date`, { opacity: 0 }, { opacity: 1, duration: 0.4 }, T + 0.55);
+          tl.fromTo(`${d} .pnl`, { rotationY: -18, rotationX: 6, x: 140, opacity: 0 }, { rotationY: -9, rotationX: 3, x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, T + 0.12);
+          tl.to(`${d} .pnl`, { rotationY: -3, rotationX: 0, duration: 2.2, ease: "none" }, T + 0.82);
+          tl.fromTo(`${d} .glow`, { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 1.2, ease: "power2.out" }, T);
+          tl.fromTo(`${d} .d-wrap`, { scale: 1 }, { scale: 1.025, transformOrigin: "50% 50%", duration: 3, ease: "none" }, T);
+        }
+
+        // D1 previews (T=3)
+        const brs = $$("#day1 .br");
+        tl.fromTo(brs, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.1, ease: "power3.out" }, 3.4);
+        tl.set("#day1 .st .ok", { opacity: 0 }, 0);
+        tl.set("#day1 .br .url", { opacity: 0 }, 0);
+        brs.forEach((b, k) => {
+          const t = 4.4 + k * 0.28;
+          tl.to(b.querySelector(".bd"), { opacity: 0, duration: 0.12 }, t);
+          tl.fromTo(b.querySelector(".ok"), { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.4)" }, t);
+          tl.fromTo(b.querySelector(".url"), { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t + 0.05);
+        });
+
+        // D2 rollbacks (T=6)
+        tl.fromTo("#day2 .dr", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, ease: "power3.out" }, 6.4);
+        tl.set(["#rb-live2", "#rb-toast"], { opacity: 0 }, 0);
+        tl.fromTo("#rb-err", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 6.4);
+        tl.set("#rb-live1", { opacity: 0 }, 0);
+        // cursor in panel-body coords: v41 row at y ~ 112+56, button right side
+        tl.fromTo("#cur2", { x: 760, y: 420, opacity: 0 }, { x: 700, y: 172, opacity: 1, duration: 0.5, ease: "power3.out" }, 6.8);
+        tl.to("#rb-btn", { scale: 0.92, duration: 0.08, yoyo: true, repeat: 1 }, 7.35);
+        tl.to("#rb-btn", { opacity: 0, duration: 0.12 }, 7.5);
+        tl.fromTo("#rb-live2", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.4)" }, 7.55);
+        tl.to("#rb-err", { opacity: 0.25, duration: 0.3 }, 7.55);
+        tl.fromTo("#rb-toast", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 7.7);
+        tl.to("#cur2", { opacity: 0, x: 780, duration: 0.3 }, 7.8);
+
+        // D3 logs (T=9)
+        tl.fromTo("#lg-filter", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 9.35);
+        tl.fromTo("#day3 .ll", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.2, stagger: 0.07, ease: "power2.out" }, 9.4);
+        tl.fromTo("#lg-list", { y: 0 }, { y: -54 * 5, duration: 2.4, ease: "power1.inOut" }, 9.6);
+        tl.to("#lg-500", { backgroundColor: "rgba(255,122,156,0.14)", borderColor: "#FF7A9C", color: "#FF7A9C", duration: 0.2 }, 10.6);
+        tl.to("#day3 .ll:not(.hot)", { opacity: 0.3, duration: 0.3 }, 10.65);
+
+        // D4 secrets (T=12)
+        tl.fromTo("#day4 .sr", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, ease: "power3.out" }, 12.4);
+        $$("#day4 .env").forEach((e, k) => {
+          const r = Math.floor(k / 3), c = k % 3;
+          tl.to(e, { backgroundColor: "rgba(255,122,156,0.16)", borderColor: "#FF7A9C", color: "#FF7A9C", duration: 0.15 }, 13.0 + c * 0.18 + r * 0.06);
+        });
+        tl.fromTo("#sc-ban", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 13.85);
+
+        // D5 CLI (T=15)
+        const cmd = "drift deploy --prod";
+        tl.set("#tm-cmd", { textContent: "" }, 0);
+        { const o = { v: 0 }; tl.to(o, { v: cmd.length, duration: 0.8, ease: "none", onUpdate: () => { $("#tm-cmd").textContent = cmd.slice(0, Math.round(o.v)); } }, 15.4); }
+        tl.fromTo("#day5 .term .tl", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.2, stagger: 0.25, ease: "power2.out" }, 16.3);
+        tl.fromTo("#tm-live", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 16.95);
+        tl.to("#tm-car", { opacity: 0, duration: 0.05 }, 16.3);
+
+        // RECAP 18–21.6
+        wordsIn("#r-h .w", 18.05, { y: 50, d: 0.45, s: 0.09 });
+        $$("#r-grid .tile").forEach((t, k) => {
+          tl.fromTo(t, { opacity: 0, y: 50, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.5)" }, 18.45 + k * 0.25);
+        });
+        tl.fromTo("#r-cam", { scale: 1.03 }, { scale: 1, transformOrigin: "50% 50%", duration: 2.9, ease: "power1.out" }, 18.0);
+        // push into brand tile (bottom-right): centre ≈ (120 + 1680*5/6, 260 + 740*3/4)
+        tl.to("#r-grid .tile:not(#brand-tile)", { opacity: 0, duration: 0.3 }, 21.0);
+        tl.to("#r-h", { opacity: 0, duration: 0.25 }, 21.0);
+        tl.to("#r-grid", { scale: 3.4, transformOrigin: "83.3% 75%", x: -(1520 - 960) , y: -(815 - 540), duration: 0.5, ease: "power3.in" }, 21.0);
+
+        // END 21.3–24
+        tl.fromTo("#e-bg", { opacity: 0 }, { opacity: 1, duration: 0.15 }, 21.35);
+        tl.fromTo("#e-lock svg", { scale: 0.6, rotation: -20 }, { scale: 1, rotation: 0, duration: 0.6, ease: "back.out(1.8)" }, 21.35);
+        tl.fromTo("#e-lock .wm", { opacity: 0, x: -30, filter: "blur(12px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.5, ease: "power3.out" }, 21.45);
+        tl.fromTo("#e-line", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 21.85);
+        tl.fromTo("#e-cta", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 22.15);
+        tl.fromTo("#e-lock", { scale: 0.98 }, { scale: 1.02, duration: 2.7, ease: "none" }, 21.3);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

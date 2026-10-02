@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "JetBrains Mono"; src: url(assets/fonts/JetBrainsMono-400.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "JetBrains Mono"; src: url(assets/fonts/JetBrainsMono-700.woff2) format("woff2"); font-weight: 700; }
+      :root {
+        --bg: #07080B; --panel: #0E1015; --panel2: #13161D; --raise: #181C24; --line: #232733; --line2: #2E3342;
+        --ink: #EDEEF2; --ink2: #C3C7D1; --mute: #9298A6; --accent: #7B8CFF; --accent2: #A3AEFF; --accentd: #5466F0;
+        --ok: #3DDC97; --okbg: rgba(61,220,151,0.12); --warn: #F5B454; --warnbg: rgba(245,180,84,0.13);
+        --paper: #F6F3EE; --paperink: #1A1A1F; --paperm: #5B5A63; --paperl: #E3DED5;
+        --r-lg: 22px; --r-md: 14px; --r-sm: 10px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; background: var(--bg); }
+      .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+      .layer { position: absolute; inset: 0; }
+      .w { display: inline-block; margin-right: 0.26em; }
+      .w:last-child { margin-right: 0; }
+
+      /* ---------- background ---------- */
+      #bg { background: var(--bg); }
+      #glow { position: absolute; left: 260px; top: -520px; width: 1400px; height: 1000px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(123,140,255,0.22) 0%, rgba(123,140,255,0.06) 45%, rgba(123,140,255,0) 70%); }
+      #glow2 { position: absolute; left: 1100px; top: 620px; width: 1100px; height: 800px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(61,220,151,0.07) 0%, rgba(61,220,151,0) 65%); }
+      #vign { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, rgba(7,8,11,0) 55%, rgba(7,8,11,0.85) 100%); pointer-events: none; }
+
+      /* ---------- stage / camera ---------- */
+      #stage { position: absolute; inset: 0; perspective: 2400px; perspective-origin: 50% 50%; overflow: hidden; }
+      #cam { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 50% 50%; }
+      #app { position: absolute; left: 80px; top: 60px; width: 1760px; height: 960px; background: var(--panel); border: 1.5px solid var(--line2); border-radius: var(--r-lg); overflow: hidden;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.02), 0 60px 140px -40px rgba(0,0,0,0.9), 0 0 120px -30px rgba(123,140,255,0.25); }
+      #app-top { position: absolute; left: 0; right: 0; top: 0; height: 72px; border-bottom: 1.5px solid var(--line); display: flex; align-items: center; padding: 0 28px; gap: 16px; background: #0C0E12; }
+      #app-top .crumb { font-size: 26px; color: var(--mute); display: flex; gap: 12px; align-items: center; }
+      #app-top .crumb b { color: var(--ink); font-weight: 500; }
+      #app-top .sp { flex: 1; }
+      #app-top .search { height: 44px; padding: 0 18px; border: 1.5px solid var(--line2); border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 26px; color: var(--mute); }
+      .av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; font-weight: 700; color: #0B0C10; flex: none; }
+      #side { position: absolute; left: 0; top: 72px; bottom: 0; width: 300px; border-right: 1.5px solid var(--line); padding: 24px 16px; display: flex; flex-direction: column; gap: 6px; background: #0C0E12; }
+      .nav { height: 54px; border-radius: 12px; display: flex; align-items: center; gap: 14px; padding: 0 16px; font-size: 27px; color: var(--mute); }
+      .nav svg { flex: none; }
+      .nav.on { background: var(--raise); color: var(--ink); }
+      .side-h { margin: 26px 16px 8px; font-size: 24px; color: var(--mute); }
+      .proj { height: 48px; display: flex; align-items: center; gap: 14px; padding: 0 16px; font-size: 26px; color: var(--ink2); }
+      .proj i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+      #main { position: absolute; left: 300px; right: 0; top: 72px; bottom: 0; padding: 36px 48px; }
+      #main-h { display: flex; align-items: center; gap: 24px; }
+      #main-h h3 { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; }
+      .tabs { display: flex; gap: 8px; margin-left: 18px; }
+      .tab { height: 44px; padding: 0 18px; border-radius: 999px; font-size: 26px; color: var(--mute); display: flex; align-items: center; border: 1.5px solid transparent; }
+      .tab.on { color: var(--ink); border-color: var(--line2); background: var(--panel2); }
+      #main-h .newb { margin-left: auto; height: 50px; padding: 0 22px; border-radius: 12px; background: var(--ink); color: #0B0C10; font-size: 26px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+      #thead { margin-top: 34px; display: flex; font-size: 24px; color: var(--mute); padding: 0 20px 14px; border-bottom: 1.5px solid var(--line); }
+      .c1 { width: 200px; flex: none; } .c2 { width: 380px; flex: none; } .c3 { width: 470px; flex: none; } .c4 { width: 200px; flex: none; } .c5 { flex: 1; text-align: right; }
+      #rows { position: relative; height: 600px; }
+      .rw { position: absolute; left: 0; right: 0; height: 84px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1.5px solid var(--line); font-size: 26px; }
+      .rw .c2 { font-family: "JetBrains Mono", monospace; font-size: 26px; color: var(--ink); }
+      .rw .c3 { color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 20px; }
+      .rw .c5 { color: var(--mute); }
+      .st { display: flex; align-items: center; gap: 12px; color: var(--ink2); }
+      .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+      .dot.ok { background: var(--ok); box-shadow: 0 0 12px rgba(61,220,151,0.6); }
+      .dot.bu { background: var(--warn); box-shadow: 0 0 12px rgba(245,180,84,0.7); }
+      .env { height: 40px; padding: 0 14px; border-radius: 999px; font-size: 24px; display: inline-flex; align-items: center; border: 1.5px solid var(--line2); color: var(--ink2); }
+      .env.prod { color: var(--accent2); border-color: rgba(123,140,255,0.4); }
+      #rnew { background: linear-gradient(90deg, rgba(123,140,255,0.13), rgba(123,140,255,0.03)); }
+      #rnew::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 4px; background: var(--accent); }
+      #rnew .stt { position: relative; width: 200px; height: 40px; }
+      #rnew .stt .st { position: absolute; left: 0; top: 0; height: 40px; }
+      #rbar { position: absolute; left: 20px; right: 20px; bottom: 0; height: 4px; border-radius: 4px; background: rgba(123,140,255,0.15); overflow: hidden; }
+      #rbar-f { width: 100%; height: 100%; background: var(--accent); transform-origin: 0 50%; }
+
+      /* terminal */
+      #term { position: absolute; left: 330px; top: 470px; width: 1120px; height: 330px; background: #0A0B0F; border: 1.5px solid var(--line2); border-radius: 20px; overflow: hidden;
+        box-shadow: 0 50px 120px -30px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.03); }
+      #term-h { height: 56px; display: flex; align-items: center; gap: 10px; padding: 0 22px; border-bottom: 1.5px solid var(--line); }
+      #term-h i { width: 14px; height: 14px; border-radius: 50%; background: #2B303C; display: inline-block; }
+      #term-h span { margin-left: 14px; font-size: 24px; color: var(--mute); }
+      #term-b { padding: 26px 34px; font-family: "JetBrains Mono", monospace; font-size: 34px; line-height: 1.7; }
+      #term-b .pr { color: var(--accent2); }
+      #t-cmd { color: var(--ink); }
+      #t-car { display: inline-block; width: 16px; height: 34px; background: var(--ink); vertical-align: -6px; margin-left: 4px; }
+      .tl { color: var(--mute); white-space: nowrap; }
+      .tl b { color: var(--ok); font-weight: 400; }
+      .tl em { color: var(--accent2); font-style: normal; }
+
+      /* detail panel */
+      #detail { position: absolute; left: 1150px; top: 200px; width: 650px; height: 740px; background: var(--panel2); border: 1.5px solid var(--line2); border-radius: 22px;
+        box-shadow: 0 60px 120px -30px rgba(0,0,0,0.95), 0 0 80px -20px rgba(123,140,255,0.22); padding: 32px 36px; }
+      #d-h { display: flex; align-items: center; gap: 16px; }
+      #d-h .br { font-family: "JetBrains Mono", monospace; font-size: 30px; font-weight: 700; }
+      #d-cm { margin-top: 14px; font-size: 26px; color: var(--mute); }
+      .hr { height: 1.5px; background: var(--line); margin: 24px 0 20px; }
+      .lbl { font-size: 24px; color: var(--mute); margin-bottom: 8px; }
+      .step { height: 56px; display: flex; align-items: center; gap: 16px; font-size: 27px; color: var(--ink2); }
+      .step .ic { position: relative; width: 30px; height: 30px; flex: none; }
+      .step .ic > * { position: absolute; inset: 0; }
+      .step .run, .step .tm { opacity: 0; }
+      .ic .pend { border-radius: 50%; border: 2.5px solid var(--line2); }
+      .ic .run { border-radius: 50%; border: 3px solid rgba(123,140,255,0.25); border-top-color: var(--accent); }
+      .ic .done { border-radius: 50%; background: var(--okbg); display: grid; place-items: center; }
+      .step .nm { flex: 1; }
+      .step .tm { font-family: "JetBrains Mono", monospace; font-size: 24px; color: var(--mute); }
+      #d-url { font-family: "JetBrains Mono", monospace; font-size: 26px; color: var(--accent2); display: flex; align-items: center; gap: 12px; height: 44px; }
+      #d-btns { margin-top: 18px; display: flex; gap: 14px; }
+      #d-open { height: 66px; padding: 0 28px; border-radius: 14px; background: var(--accent); color: #0B0C14; font-size: 27px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+      #d-copy { height: 66px; padding: 0 24px; border-radius: 14px; border: 1.5px solid var(--line2); color: var(--ink2); font-size: 26px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+      #d-ripple { position: absolute; width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--accent2); opacity: 0; }
+
+      /* screen-space overlays */
+      #spot { background: radial-gradient(ellipse 560px 260px at 50% 50%, rgba(5,6,9,0) 55%, rgba(5,6,9,0.78) 100%); }
+      #scrim { position: absolute; left: 0; right: 0; top: 0; height: 180px; background: linear-gradient(180deg, rgba(7,8,11,0.95) 0%, rgba(7,8,11,0.75) 50%, rgba(7,8,11,0) 100%); }
+      .mlabel { position: absolute; left: 110px; top: 62px; display: flex; align-items: center; gap: 22px; white-space: nowrap; }
+      .mlabel .n { font-family: "JetBrains Mono", monospace; font-size: 30px; color: var(--accent2); border: 1.5px solid rgba(123,140,255,0.45); border-radius: 10px; height: 46px; padding: 0 12px; display: flex; align-items: center; }
+      .mlabel .t { font-size: 48px; font-weight: 500; letter-spacing: -0.02em; color: var(--ink); }
+      #cursor { position: absolute; left: 0; top: 0; width: 46px; height: 46px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)); }
+
+      /* hook + title */
+      #hook-plate, #title-plate { position: absolute; left: 160px; top: 260px; width: 1600px; height: 560px; background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(7,8,11,0.88) 30%, rgba(7,8,11,0) 100%); }
+      .hl { position: absolute; left: 0; right: 0; text-align: center; font-weight: 700; font-size: 124px; letter-spacing: -0.045em; line-height: 1; white-space: nowrap; }
+      #hl1 { top: 384px; color: var(--ink); }
+      #hl2 { top: 532px; color: var(--accent2); }
+      #ti-mark { position: absolute; left: 912px; top: 250px; width: 96px; height: 96px; }
+      #ti-eb { position: absolute; left: 0; right: 0; top: 376px; text-align: center; font-size: 36px; font-weight: 500; color: var(--mute); }
+      #ti-t { position: absolute; left: 0; right: 0; top: 440px; text-align: center; font-size: 140px; font-weight: 700; letter-spacing: -0.05em; line-height: 1.05; white-space: nowrap; }
+      #ti-s { position: absolute; left: 0; right: 0; top: 610px; text-align: center; font-size: 64px; font-weight: 400; letter-spacing: -0.03em; color: var(--accent2); white-space: nowrap; }
+
+      /* preview layer */
+      #pvl { perspective: 2400px; }
+      #pv { position: absolute; left: 230px; top: 205px; width: 1220px; height: 800px; border-radius: 20px; overflow: hidden; background: var(--paper); border: 1.5px solid #3A3F4D;
+        box-shadow: 0 70px 160px -40px rgba(0,0,0,0.95), 0 0 140px -30px rgba(123,140,255,0.3); }
+      #pv-ch { height: 66px; background: #1A1D25; display: flex; align-items: center; gap: 10px; padding: 0 22px; }
+      #pv-ch i { width: 14px; height: 14px; border-radius: 50%; background: #3A3F4D; display: inline-block; }
+      #pv-url { margin-left: 22px; flex: 1; height: 44px; border-radius: 12px; background: #0F1116; display: flex; align-items: center; gap: 12px; padding: 0 18px; font-family: "JetBrains Mono", monospace; font-size: 24px; color: var(--ink2); }
+      #pv-url b { color: var(--accent2); font-weight: 400; }
+      #pg { position: absolute; left: 0; right: 0; top: 66px; bottom: 0; color: var(--paperink); }
+      #pg-nav { height: 76px; display: flex; align-items: center; padding: 0 48px; border-bottom: 1.5px solid var(--paperl); font-size: 26px; color: var(--paperm); gap: 34px; }
+      #pg-nav .lg { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; color: var(--paperink); margin-right: auto; }
+      #pg-l { position: absolute; left: 48px; top: 112px; width: 560px; }
+      #pg-l h4 { font-size: 46px; font-weight: 700; letter-spacing: -0.03em; }
+      .fld { margin-top: 22px; }
+      .fld .fl { font-size: 26px; color: var(--paperm); margin-bottom: 8px; }
+      .fld .bx { height: 62px; border: 1.5px solid #D5CFC4; border-radius: 12px; background: #fff; display: flex; align-items: center; padding: 0 18px; font-size: 26px; color: var(--paperink); }
+      #pg-r { position: absolute; left: 660px; top: 112px; width: 510px; background: #EFEBE4; border-radius: 18px; padding: 28px 30px; }
+      #pg-r h5 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 18px; }
+      .it { display: flex; align-items: center; gap: 16px; height: 74px; font-size: 26px; }
+      .it .th { width: 54px; height: 54px; border-radius: 12px; flex: none; }
+      .it .nm { flex: 1; }
+      .it .pr { font-weight: 500; }
+      #promo { margin-top: 12px; height: 58px; border: 1.5px dashed #C9C2B6; border-radius: 12px; display: flex; align-items: center; padding: 0 18px; font-size: 26px; color: var(--paperm); }
+      .tot { margin-top: 18px; display: flex; justify-content: space-between; font-size: 30px; font-weight: 700; }
+      #pay { margin-top: 20px; height: 66px; border-radius: 14px; background: var(--paperink); color: #fff; font-size: 28px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+      #pv-bar { position: absolute; left: 50%; bottom: 26px; margin-left: -300px; width: 600px; height: 62px; border-radius: 999px; background: #12141B; border: 1.5px solid #2E3342; display: flex; align-items: center; gap: 16px; padding: 0 22px; font-size: 24px; color: var(--ink2); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); }
+      #pv-bar .mono { color: var(--accent2); }
+      #pv-bar .cm { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+      .pin { position: absolute; width: 50px; height: 50px; border-radius: 50% 50% 50% 6px; display: grid; place-items: center; font-size: 19px; font-weight: 700; color: #0B0C10; border: 3px solid #fff; box-shadow: 0 8px 20px -4px rgba(0,0,0,0.4); }
+      .bub { position: absolute; width: 440px; background: #12141B; border: 1.5px solid #2E3342; border-radius: 16px; padding: 16px 20px; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8); }
+      .bub .who { font-size: 24px; color: var(--mute); margin-bottom: 6px; }
+      .bub .who b { color: var(--ink); font-weight: 500; }
+      .bub .tx { font-size: 28px; color: var(--ink); line-height: 1.3; }
+      .bub .rs { margin-top: 10px; font-size: 24px; color: var(--ok); display: flex; align-items: center; gap: 8px; }
+
+      #pr { position: absolute; left: 1260px; top: 250px; width: 580px; height: 620px; background: var(--panel2); border: 1.5px solid var(--line2); border-radius: 22px; padding: 32px 36px;
+        box-shadow: 0 60px 140px -30px rgba(0,0,0,0.95), 0 0 80px -20px rgba(123,140,255,0.22); }
+      #pr .t { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+      #pr .b { margin-top: 10px; font-family: "JetBrains Mono", monospace; font-size: 24px; color: var(--mute); }
+      #pr .b em { color: var(--accent2); font-style: normal; }
+      .chk { height: 60px; display: flex; align-items: center; gap: 16px; font-size: 27px; color: var(--ink2); }
+      .chk .ck { width: 32px; height: 32px; border-radius: 50%; background: var(--okbg); display: grid; place-items: center; flex: none; }
+      .chk .nm { flex: 1; }
+      .chk .tm { font-family: "JetBrains Mono", monospace; font-size: 24px; color: var(--mute); }
+      #merge { position: relative; margin-top: 22px; height: 70px; border-radius: 14px; background: var(--ok); color: #06140D; font-size: 28px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px; }
+      #merged { position: absolute; inset: 0; border-radius: 14px; background: #1B2A24; border: 1.5px solid rgba(61,220,151,0.5); color: var(--ok); display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0; }
+      #pr-note { margin-top: 16px; font-size: 26px; color: var(--mute); display: flex; align-items: center; gap: 10px; }
+      #m-ripple { position: absolute; width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--ok); opacity: 0; }
+
+      /* wall */
+      #wall { perspective: 1900px; }
+      #wallg { position: absolute; left: -380px; top: -380px; width: 2680px; height: 1840px; display: grid; grid-template-columns: repeat(6, 410px); gap: 44px; transform-style: preserve-3d; }
+      .wc { height: 280px; border-radius: 18px; background: var(--panel2); border: 1.5px solid var(--line2); overflow: hidden; position: relative; }
+      .wc .sh { position: absolute; left: 14px; right: 14px; top: 14px; height: 176px; border-radius: 10px; background: var(--paper); overflow: hidden; }
+      .wc .sh i { position: absolute; display: block; border-radius: 5px; }
+      .wc .ft { position: absolute; left: 20px; right: 20px; bottom: 22px; display: flex; align-items: center; gap: 10px; font-family: "JetBrains Mono", monospace; font-size: 26px; color: var(--ink); white-space: nowrap; overflow: hidden; }
+      #wall-plate { position: absolute; left: 60px; top: 220px; width: 1800px; height: 640px; background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(7,8,11,0.96) 45%, rgba(7,8,11,0) 100%); }
+      #wall-t { position: absolute; left: 0; right: 0; top: 470px; text-align: center; font-size: 120px; font-weight: 700; letter-spacing: -0.045em; white-space: nowrap; line-height: 1.1; }
+      #wall-t .a { color: var(--accent2); }
+
+      /* end */
+      #end { background: var(--bg); }
+      #end-glow { position: absolute; left: 360px; top: 140px; width: 1200px; height: 800px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(123,140,255,0.2) 0%, rgba(123,140,255,0) 65%); }
+      #tg1, #tg2 { position: absolute; left: 0; right: 0; text-align: center; font-size: 112px; font-weight: 700; letter-spacing: -0.045em; line-height: 1.05; white-space: nowrap; }
+      #tg1 { top: 400px; color: var(--ink); }
+      #tg2 { top: 540px; color: var(--accent2); }
+      #lock { position: absolute; left: 0; right: 0; top: 360px; display: flex; justify-content: center; align-items: center; gap: 34px; }
+      #lock svg { width: 132px; height: 132px; }
+      #lock .wm { font-size: 136px; font-weight: 700; letter-spacing: -0.055em; line-height: 1; }
+      #avail { position: absolute; left: 0; right: 0; top: 560px; text-align: center; font-size: 44px; color: var(--ink2); letter-spacing: -0.015em; }
+      #cta { position: absolute; left: 0; right: 0; top: 660px; display: flex; justify-content: center; }
+      #cta .pill { height: 84px; padding: 0 40px; border-radius: 999px; background: var(--accent); color: #0B0C14; font-size: 36px; font-weight: 700; display: flex; align-items: center; gap: 14px; letter-spacing: -0.01em; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="31" data-width="1920" data-height="1080">
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="mus" src="assets/music/bgm-tech.mp3" data-start="0" data-duration="31" data-media-start="17.55" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":29.6,"v":1},{"t":31,"v":0}]}]}'></audio>
+      <audio id="sx-open" src="assets/sfx/whoosh-cinematic.mp3" data-start="0" data-duration="4" data-track-index="21" data-volume="0.16"></audio>
+      <audio id="sx-ti" src="assets/sfx/whoosh-short.mp3" data-start="3.45" data-duration="0.57" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-rev" src="assets/sfx/whoosh.mp3" data-start="6.3" data-duration="0.57" data-track-index="22" data-volume="0.28"></audio>
+      <audio id="sx-type" src="assets/sfx/typing.mp3" data-start="8.1" data-duration="1.05" data-track-index="23" data-volume="0.26"></audio>
+      <audio id="sx-ent" src="assets/sfx/key-press.mp3" data-start="9.3" data-duration="0.4" data-track-index="24" data-volume="0.35"></audio>
+      <audio id="sx-row" src="assets/sfx/pop.mp3" data-start="10.3" data-duration="0.7" data-track-index="25" data-volume="0.22"></audio>
+      <audio id="sx-s1" src="assets/sfx/click-soft.mp3" data-start="10.9" data-duration="0.36" data-track-index="26" data-volume="0.16"></audio>
+      <audio id="sx-s2" src="assets/sfx/click-soft.mp3" data-start="11.3" data-duration="0.36" data-track-index="26" data-volume="0.16"></audio>
+      <audio id="sx-s3" src="assets/sfx/click-soft.mp3" data-start="11.7" data-duration="0.36" data-track-index="26" data-volume="0.16"></audio>
+      <audio id="sx-s4" src="assets/sfx/click-soft.mp3" data-start="12.0" data-duration="0.36" data-track-index="30" data-volume="0.16"></audio>
+      <audio id="sx-ready" src="assets/sfx/pop.mp3" data-start="12.45" data-duration="0.7" data-track-index="25" data-volume="0.28"></audio>
+      <audio id="sx-rise" src="assets/sfx/riser.mp3" data-start="12.1" data-duration="2.4" data-media-start="7.6" data-track-index="27" data-volume="0.26"></audio>
+      <audio id="sx-push" src="assets/sfx/whoosh-short.mp3" data-start="12.9" data-duration="0.57" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-clk" src="assets/sfx/click.mp3" data-start="14.5" data-duration="0.36" data-track-index="24" data-volume="0.42"></audio>
+      <audio id="sx-imp" src="assets/sfx/impact-bass-1.mp3" data-start="14.5" data-duration="2.1" data-track-index="28" data-volume="0.34"></audio>
+      <audio id="sx-pv" src="assets/sfx/whoosh.mp3" data-start="14.8" data-duration="0.57" data-track-index="22" data-volume="0.28"></audio>
+      <audio id="sx-c1" src="assets/sfx/pop.mp3" data-start="16.1" data-duration="0.7" data-track-index="25" data-volume="0.22"></audio>
+      <audio id="sx-c2" src="assets/sfx/pop.mp3" data-start="17.0" data-duration="0.7" data-track-index="29" data-volume="0.22"></audio>
+      <audio id="sx-c3" src="assets/sfx/click-soft.mp3" data-start="17.75" data-duration="0.36" data-track-index="26" data-volume="0.2"></audio>
+      <audio id="sx-pr" src="assets/sfx/whoosh-short.mp3" data-start="18.3" data-duration="0.57" data-track-index="22" data-volume="0.22"></audio>
+      <audio id="sx-k1" src="assets/sfx/click-soft.mp3" data-start="18.8" data-duration="0.36" data-track-index="26" data-volume="0.18"></audio>
+      <audio id="sx-k2" src="assets/sfx/click-soft.mp3" data-start="19.05" data-duration="0.36" data-track-index="21" data-volume="0.18"></audio>
+      <audio id="sx-k3" src="assets/sfx/click-soft.mp3" data-start="19.3" data-duration="0.36" data-track-index="26" data-volume="0.18"></audio>
+      <audio id="sx-k4" src="assets/sfx/click-soft.mp3" data-start="19.55" data-duration="0.36" data-track-index="21" data-volume="0.18"></audio>
+      <audio id="sx-mclk" src="assets/sfx/click.mp3" data-start="20.4" data-duration="0.36" data-track-index="24" data-volume="0.4"></audio>
+      <audio id="sx-mpop" src="assets/sfx/pop.mp3" data-start="20.5" data-duration="0.7" data-track-index="25" data-volume="0.26"></audio>
+      <audio id="sx-wall" src="assets/sfx/whoosh.mp3" data-start="21.2" data-duration="0.57" data-track-index="22" data-volume="0.3"></audio>
+      <audio id="sx-end" src="assets/sfx/whoosh-short.mp3" data-start="24.6" data-duration="0.57" data-track-index="22" data-volume="0.24"></audio>
+      <audio id="sx-logo" src="assets/sfx/impact-bass-2.mp3" data-start="27.5" data-duration="2.5" data-track-index="28" data-volume="0.3"></audio>
+
+      <!-- ================= BACKGROUND ================= -->
+      <div id="bg" class="layer clip" data-start="0" data-duration="31" data-track-index="0" style="z-index:0">
+        <div id="glow"></div>
+        <div id="glow2"></div>
+        <div id="vign"></div>
+      </div>
+
+      <!-- ================= PRODUCT STAGE (one continuous camera) ================= -->
+      <div id="stagewrap" data-layout-ignore class="layer clip" data-start="0" data-duration="21.6" data-track-index="1" style="z-index:1">
+        <div id="stage">
+          <div id="cam">
+            <div id="app">
+              <div id="app-top">
+                <svg width="34" height="34" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#7B8CFF"/><path d="M23 15v34" stroke="#0B0C14" stroke-width="6" stroke-linecap="round"/><path d="M23 41c0-11 18-8 18-19" stroke="#0B0C14" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="41" cy="19" r="6" fill="#0B0C14"/></svg>
+                <div class="crumb"><b>Halcyon</b><span>/</span><span>storefront-web</span><span>/</span><b>Deployments</b></div>
+                <div class="sp"></div>
+                <div class="search"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search<span class="mono" style="font-size:22px;margin-left:24px">⌘K</span></div>
+                <div class="av" style="background:#F5B454">JD</div>
+              </div>
+              <div id="side">
+                <div class="nav"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Overview</div>
+                <div class="nav on"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>Deployments</div>
+                <div class="nav"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><path d="M6 8.5V20"/><path d="M6 15c0-4 12-3 12-4.5"/></svg>Previews</div>
+                <div class="nav"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg>Logs</div>
+                <div class="nav"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Domains</div>
+                <div class="nav"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</div>
+                <div class="side-h">Projects</div>
+                <div class="proj"><i style="background:#7B8CFF"></i>storefront-web</div>
+                <div class="proj"><i style="background:#3DDC97"></i>api-gateway</div>
+                <div class="proj"><i style="background:#F5B454"></i>docs-site</div>
+              </div>
+              <div id="main">
+                <div id="main-h">
+                  <h3>Deployments</h3>
+                  <div class="tabs"><div class="tab">All</div><div class="tab">Production</div><div class="tab on">Preview</div></div>
+                  <div class="newb"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New</div>
+                </div>
+                <div id="thead"><span class="c1">Status</span><span class="c2">Branch</span><span class="c3">Commit</span><span class="c4">Environment</span><span class="c5">Age</span></div>
+                <div id="rows">
+                  <div id="rnew" class="rw" style="top:0">
+                    <div class="c1 stt">
+                      <div id="st-bu" class="st"><span id="bu-dot" class="dot bu"></span>Building</div>
+                      <div id="st-ok" class="st"><span class="dot ok"></span>Ready</div>
+                    </div>
+                    <span class="c2">feat/checkout-v2</span><span class="c3">One-page checkout</span><span class="c4"><span class="env">Preview</span></span><span class="c5">now</span>
+                    <div id="rbar"><div id="rbar-f"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="term">
+              <div id="term-h"><i></i><i></i><i></i><span>~/halcyon/storefront-web</span></div>
+              <div id="term-b">
+                <div><span class="pr">$ </span><span id="t-cmd"></span><span id="t-car"></span></div>
+                <div id="t-o1" class="tl">→ Pushed to <em>feat/checkout-v2</em></div>
+                <div id="t-o2" class="tl">→ Driftbase: building preview <b>●</b></div>
+              </div>
+            </div>
+
+            <div id="detail">
+              <div id="d-h"><span class="br">feat/checkout-v2</span><span class="env">Preview</span></div>
+              <div id="d-cm">One-page checkout · <span class="mono" style="font-size:24px">a3f9c2e</span> · Jade D.</div>
+              <div class="hr"></div>
+              <div class="lbl">Build</div>
+              <div id="d-steps"></div>
+              <div class="hr" style="margin:18px 0 16px"></div>
+              <div id="d-urlblk">
+                <div class="lbl">Preview URL</div>
+                <div id="d-url"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span id="d-urlt">checkout-v2.storefront.drift.run</span></div>
+                <div id="d-btns">
+                  <div id="d-open">Open preview<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></div>
+                  <div id="d-copy"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>Copy link</div>
+                </div>
+              </div>
+              <div id="d-ripple"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- spotlight for the macro push-in -->
+      <div id="spot" class="layer clip" data-start="12.8" data-duration="2.6" data-track-index="2" style="z-index:2"></div>
+
+      <!-- ================= PREVIEW + MERGE ================= -->
+      <div id="pvl" class="layer clip" data-start="14.6" data-duration="7.0" data-track-index="3" style="z-index:3">
+        <div id="pv">
+          <div id="pv-ch"><i></i><i></i><i></i>
+            <div id="pv-url"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3DDC97" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><b>checkout-v2</b>.storefront.drift.run</div>
+          </div>
+          <div id="pg" data-layout-allow-overlap>
+            <div id="pg-nav"><span class="lg">Lumen &amp; Co.</span><span>Lamps</span><span>Shades</span><span>Cart (2)</span></div>
+            <div id="pg-l">
+              <h4>Checkout</h4>
+              <div class="fld"><div class="fl">Email</div><div class="bx">ines.moreau@mail.test</div></div>
+              <div class="fld"><div class="fl">Shipping address</div><div class="bx">14 Rue des Lilas, Lyon</div></div>
+              <div class="fld"><div class="fl">Card</div><div class="bx">•••• •••• •••• 4242</div></div>
+            </div>
+            <div id="pg-r">
+              <h5>Order summary</h5>
+              <div class="it"><span class="th" style="background:linear-gradient(135deg,#E9C46A,#C9973A)"></span><span class="nm">Arc desk lamp</span><span class="pr">$96.00</span></div>
+              <div class="it"><span class="th" style="background:linear-gradient(135deg,#B8C4B0,#7F8F78)"></span><span class="nm">Linen shade</span><span class="pr">$52.00</span></div>
+              <div id="promo">Promo code</div>
+              <div class="tot"><span>Total</span><span>$148.00</span></div>
+              <div id="pay">Pay $148.00</div>
+            </div>
+            <div id="pv-bar"><svg width="28" height="28" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#7B8CFF"/><path d="M23 15v34" stroke="#0B0C14" stroke-width="6" stroke-linecap="round"/><path d="M23 41c0-11 18-8 18-19" stroke="#0B0C14" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="41" cy="19" r="6" fill="#0B0C14"/></svg><span class="mono">feat/checkout-v2</span><span class="cm"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="cmn">0</span> comments</span></div>
+            <div id="pin1" class="pin" style="left:1100px; top:332px; background:#F5B454">MR</div>
+            <div id="bub1" data-layout-allow-overlap class="bub" style="left:620px; top:212px"><div class="who"><b>Maya R.</b> · Design</div><div class="tx">Promo field above the total?</div><div id="res1" class="rs"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Fixed in 4b1e09a</div></div>
+            <div id="pin2" class="pin" style="left:1100px; top:540px; background:#3DDC97">TK</div>
+            <div id="bub2" data-layout-allow-overlap class="bub" style="left:620px; top:470px; width:440px"><div class="who"><b>Theo K.</b> · PM</div><div class="tx">Flow feels fast. Ship it.</div></div>
+          </div>
+        </div>
+
+        <div id="pr">
+          <div class="t">Merge request #482</div>
+          <div class="b"><em>feat/checkout-v2</em> → main</div>
+          <div class="hr" style="margin:24px 0 10px"></div>
+          <div id="pr-checks"></div>
+          <div id="merge"><span id="merge-t">Merge</span>
+            <div id="merged"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Merged</div>
+            <div id="m-ripple"></div>
+          </div>
+          <div id="pr-note"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg>Preview cleaned up automatically</div>
+        </div>
+      </div>
+
+      <!-- ================= WALL ================= -->
+      <div id="wall" class="layer clip" data-start="21.0" data-duration="3.9" data-track-index="4" style="z-index:4">
+        <div id="wallin" class="layer" data-layout-ignore>
+          <div id="wallg"></div>
+        </div>
+        <div id="wall-plate"></div>
+        <div id="wall-t"><span class="w">One</span><span class="w">preview</span><span class="w">per</span><span class="w a">branch.</span></div>
+      </div>
+
+      <!-- ================= HOOK ================= -->
+      <div id="hook" class="layer clip" data-start="0" data-duration="3.6" data-track-index="5" style="z-index:5">
+        <div id="hook-plate"></div>
+        <div id="hl1" class="hl"><span class="w">See</span><span class="w">it</span><span class="w">live.</span></div>
+        <div id="hl2" class="hl"><span class="w">Before</span><span class="w">you</span><span class="w">merge.</span></div>
+      </div>
+
+      <!-- ================= TITLE ================= -->
+      <div id="title" class="layer clip" data-start="3.4" data-duration="3.3" data-track-index="6" style="z-index:6">
+        <div id="title-plate"></div>
+        <svg id="ti-mark" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#7B8CFF"/><path d="M23 15v34" stroke="#0B0C14" stroke-width="6" stroke-linecap="round"/><path d="M23 41c0-11 18-8 18-19" stroke="#0B0C14" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="41" cy="19" r="6" fill="#0B0C14"/></svg>
+        <div id="ti-eb">New in Driftbase</div>
+        <div id="ti-t"><span class="w">Preview</span><span class="w">environments</span></div>
+        <div id="ti-s"><span class="w">for</span><span class="w">every</span><span class="w">branch.</span></div>
+      </div>
+
+      <!-- ================= MOMENT LABELS ================= -->
+      <div id="labels" class="layer clip" data-start="7.3" data-duration="14.2" data-track-index="7" style="z-index:7">
+        <div id="scrim"></div>
+        <div id="lb1" class="mlabel"><span class="n">01</span><span class="t">Push any branch</span></div>
+        <div id="lb2" class="mlabel"><span class="n">02</span><span class="t">A live URL, instantly</span></div>
+        <div id="lb3" class="mlabel"><span class="n">03</span><span class="t">Review together, then merge</span></div>
+      </div>
+
+      <!-- ================= CURSOR ================= -->
+      <div id="curl" class="layer clip" data-start="13.3" data-duration="7.6" data-track-index="8" style="z-index:8; pointer-events:none">
+        <svg id="cursor" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.9z" fill="#FFFFFF" stroke="#0B0C10" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </div>
+
+      <!-- ================= END ================= -->
+      <div id="end" class="layer clip" data-start="24.5" data-duration="6.5" data-track-index="9" style="z-index:9">
+        <div id="end-glow"></div>
+        <div id="tg1"><span class="w">Preview</span><span class="w">every</span><span class="w">branch.</span></div>
+        <div id="tg2"><span class="w">Merge</span><span class="w">with</span><span class="w">confidence.</span></div>
+        <div id="lock">
+          <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#7B8CFF"/><path d="M23 15v34" stroke="#0B0C14" stroke-width="6" stroke-linecap="round"/><path d="M23 41c0-11 18-8 18-19" stroke="#0B0C14" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="41" cy="19" r="6" fill="#0B0C14"/></svg>
+          <span class="wm">driftbase</span>
+        </div>
+        <div id="avail">Preview environments · available today on every plan</div>
+        <div id="cta"><div class="pill">driftbase.dev<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div></div>
+      </div>
+
+    </div>
+
+    <script>
+      (function () {
+        let seed = 11;
+        const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => Array.from(document.querySelectorAll(s));
+        const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+        const CHECK = (c, s = 18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+
+        // ---------- deployment rows ----------
+        const ROW_H = 84;
+        const rowsData = [
+          ["main", "Bump payments SDK to 4.2", "Production", "2h"],
+          ["fix/vat-rounding", "Round VAT per line item", "Preview", "3h"],
+          ["feat/gift-cards", "Gift card balance in cart", "Preview", "5h"],
+          ["chore/deps-oct", "Update lockfile", "Preview", "1d"],
+          ["feat/search-v3", "Typo-tolerant product search", "Preview", "1d"],
+          ["docs/api-keys", "Key rotation guide", "Preview", "2d"],
+        ];
+        const rowsBox = $("#rows");
+        const oldRows = rowsData.map(([b, c, e, a], i) => {
+          const r = el("div", "rw", `<span class="c1 st"><span class="dot ok"></span>Ready</span><span class="c2">${b}</span><span class="c3">${c}</span><span class="c4"><span class="env ${e === "Production" ? "prod" : ""}">${e}</span></span><span class="c5">${a}</span>`);
+          r.style.top = (i + 1) * ROW_H + "px";
+          rowsBox.appendChild(r);
+          return r;
+        });
+
+        // page copy sits under the comment layer on purpose (comments float over the preview)
+        $$("#pg-l *, #pg-r *").forEach((n) => n.setAttribute("data-layout-allow-overlap", ""));
+
+        // ---------- build steps ----------
+        const steps = [["Clone repository", "1.2s"], ["Install dependencies", "8.4s"], ["Build app", "21.6s"], ["Seed preview database", "3.1s"], ["Deploy to edge", "2.0s"]];
+        const ds = $("#d-steps");
+        steps.forEach(([n, t]) => {
+          ds.appendChild(el("div", "step", `<span class="ic"><span class="pend"></span><span class="run"></span><span class="done">${CHECK("#3DDC97", 16)}</span></span><span class="nm">${n}</span><span class="tm">${t}</span>`));
+        });
+
+        // ---------- PR checks ----------
+        const prc = $("#pr-checks");
+        [["Build", "38s"], ["Preview deployed", "ready"], ["128 tests passed", "1m 12s"], ["2 approvals", "Maya, Theo"]].forEach(([n, t]) => {
+          prc.appendChild(el("div", "chk", `<span class="ck">${CHECK("#3DDC97", 18)}</span><span class="nm">${n}</span><span class="tm">${t}</span>`));
+        });
+
+        // ---------- wall of previews ----------
+        const branches = ["feat/checkout-v2", "fix/vat-rounding", "feat/gift-cards", "feat/search-v3", "fix/cart-badge", "feat/dark-mode", "chore/deps-oct", "feat/wishlist", "fix/img-lazy", "feat/reviews", "docs/api-keys", "feat/bundles", "fix/safari-nav", "feat/returns", "feat/i18n-fr", "fix/tax-de", "feat/loyalty", "feat/quick-buy", "fix/a11y-forms", "feat/store-map", "feat/size-guide", "fix/promo-edge", "feat/subscribe", "feat/onboarding", "fix/og-images", "feat/gift-wrap", "feat/compare", "fix/currency", "feat/pdp-video", "feat/b2b-quotes"];
+        const swatch = ["#E9C46A", "#B8C4B0", "#C8B6E2", "#9FC5E8", "#F4A6A0", "#A8DADC"];
+        const wg = $("#wallg");
+        const cards = [];
+        branches.forEach((b, i) => {
+          const c1 = swatch[Math.floor(rnd() * swatch.length)];
+          const w1 = 40 + Math.round(rnd() * 40);
+          const sh = `<i style="left:14px;top:14px;width:${w1}%;height:16px;background:#2A2A30"></i><i style="left:14px;top:44px;width:42%;height:96px;background:${c1}"></i><i style="left:54%;top:44px;width:38%;height:12px;background:#CFC8BC"></i><i style="left:54%;top:66px;width:30%;height:12px;background:#DDD7CC"></i><i style="left:54%;top:108px;width:38%;height:32px;background:#1A1A1F"></i>`;
+          const c = el("div", "wc", `<div class="sh">${sh}</div><div class="ft"><span class="dot ok"></span>${b}</div>`);
+          wg.appendChild(c);
+          cards.push(c);
+        });
+
+        // ---------- timeline ----------
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (sel, at, o = {}) => tl.fromTo(sel, { opacity: 0, y: o.y ?? 34, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.55, stagger: o.s ?? 0.09, ease: "power3.out" }, at);
+        const wordsOut = (sel, at) => tl.to(sel, { opacity: 0, y: -24, filter: "blur(12px)", duration: 0.3, stagger: 0.03, ease: "power2.in" }, at);
+        const labelIn = (sel, at) => { tl.fromTo(sel + " .n", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, at); tl.fromTo(sel + " .t", { opacity: 0, x: -10, filter: "blur(8px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }, at + 0.08); };
+        const labelOut = (sel, at) => tl.to([sel + " .n", sel + " .t"], { opacity: 0, x: 12, filter: "blur(6px)", duration: 0.3, ease: "power2.in" }, at);
+
+        // camera helper: focus a cam-space point P at screen centre with scale s (origin = 960,540)
+        const focus = (px, py, s) => ({ x: -s * (px - 960), y: -s * (py - 540), scale: s });
+
+        // ===== HOOK 0–3.6 : blurred product, slow drift =====
+        tl.fromTo("#cam", { rotationX: 40, rotationY: 0, rotationZ: -14, scale: 1.4, x: 120, y: 160 }, { rotationX: 34, rotationZ: -10, scale: 1.22, x: 40, y: 80, duration: 6.3, ease: "sine.inOut" }, 0);
+        tl.fromTo("#stagewrap", { opacity: 0.5, filter: "blur(16px)" }, { opacity: 0.6, filter: "blur(14px)", duration: 6.3, ease: "none" }, 0);
+        tl.fromTo("#glow", { x: -120, opacity: 0.6 }, { x: 160, opacity: 1, duration: 31, ease: "sine.inOut" }, 0);
+        tl.fromTo("#hook-plate", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0);
+        wordsIn("#hl1 .w", 0.25, { y: 40, s: 0.12 });
+        wordsIn("#hl2 .w", 1.05, { y: 40, s: 0.12 });
+        tl.fromTo(["#hl1", "#hl2"], { scale: 0.98 }, { scale: 1.02, duration: 3.4, ease: "none" }, 0.2);
+        wordsOut(["#hl1 .w", "#hl2 .w"], 3.15);
+
+        // ===== TITLE 3.4–6.7 =====
+        tl.fromTo("#title-plate", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 3.4);
+        tl.fromTo("#ti-mark", { opacity: 0, scale: 0.4, rotation: -20 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(2)" }, 3.5);
+        tl.fromTo("#ti-eb", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 3.65);
+        wordsIn("#ti-t .w", 3.8, { y: 50, d: 0.6, s: 0.14 });
+        wordsIn("#ti-s .w", 4.5, { y: 24, s: 0.1 });
+        tl.fromTo(["#ti-t", "#ti-s", "#ti-eb"], { scale: 0.98 }, { scale: 1.02, duration: 3, ease: "none" }, 3.6);
+        tl.to(["#ti-mark", "#ti-eb", "#ti-t", "#ti-s", "#title-plate"], { opacity: 0, y: -60, filter: "blur(10px)", duration: 0.45, stagger: 0.03, ease: "power2.in" }, 6.15);
+
+        // ===== REVEAL 6.3–7.8 : UI un-blurs and settles into 3D hero pose =====
+        tl.to("#stagewrap", { opacity: 1, filter: "blur(0px)", duration: 1.3, ease: "power2.out" }, 6.3);
+        tl.to("#cam", { rotationX: 18, rotationY: -14, rotationZ: 2, scale: 0.92, x: -10, y: 30, duration: 1.6, ease: "power3.inOut" }, 6.3);
+        tl.to("#cam", { rotationX: 15, rotationY: -10, rotationZ: 1.5, scale: 0.95, x: -20, y: 30, duration: 2.3, ease: "none" }, 7.9);
+
+        // ===== MOMENT 1 — Push a branch 7.4–12.4 =====
+        labelIn("#lb1", 7.6);
+        tl.fromTo("#scrim", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 7.3);
+        tl.fromTo("#term", { opacity: 0, z: 380, y: 60 }, { opacity: 1, z: 230, y: 0, duration: 0.7, ease: "power3.out" }, 7.7);
+        { const cmd = "git push origin feat/checkout-v2"; const o = { n: 0 }; tl.to(o, { n: cmd.length, duration: 1.05, ease: "none", onUpdate: () => { $("#t-cmd").textContent = cmd.slice(0, Math.round(o.n)); } }, 8.1); }
+        tl.fromTo("#t-car", { opacity: 1 }, { opacity: 0.2, duration: 0.25, yoyo: true, repeat: 3, ease: "steps(1)" }, 7.7);
+        tl.to("#t-car", { opacity: 0, duration: 0.05 }, 9.3);
+        tl.fromTo("#t-o1", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3 }, 9.4);
+        tl.fromTo("#t-o2", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3 }, 9.55);
+        // new row slides in at the top, others shift down
+        tl.fromTo(oldRows, { y: -ROW_H }, { y: 0, duration: 0.5, ease: "power3.inOut" }, 10.2);
+        tl.fromTo("#rnew", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 10.3);
+        tl.fromTo("#bu-dot", { scale: 1 }, { scale: 1.45, duration: 0.3, yoyo: true, repeat: 7, ease: "sine.inOut" }, 10.1);
+        tl.fromTo("#rbar-f", { scaleX: 0 }, { scaleX: 1, duration: 2.3, ease: "power1.inOut" }, 10.1);
+        // terminal recedes, camera pushes toward the new row + detail panel
+        tl.to("#term", { opacity: 0, z: 420, y: -40, filter: "blur(10px)", duration: 0.4, ease: "power2.in" }, 10.05);
+        tl.to("#cam", { ...focus(1110, 480, 0.98), rotationX: 9, rotationY: -8, rotationZ: 0.8, duration: 1.4, ease: "power3.inOut" }, 10.2);
+        tl.to("#cam", { ...focus(1150, 500, 1.02), rotationX: 7, rotationY: -6, rotationZ: 0.5, duration: 1.3, ease: "none" }, 11.6);
+        tl.fromTo("#detail", { opacity: 0, z: 220, x: 60 }, { opacity: 1, z: 90, x: 0, duration: 0.7, ease: "power3.out" }, 10.5);
+        const stepEls = $$(".step");
+        const stepT = [10.9, 11.3, 11.7, 12.0, 12.3];
+        stepEls.forEach((s, i) => {
+          const start = i === 0 ? 10.6 : stepT[i - 1];
+          tl.to(s.querySelector(".pend"), { opacity: 0, duration: 0.1 }, start);
+          tl.to(s.querySelector(".run"), { opacity: 1, duration: 0.1 }, start);
+          tl.fromTo(s.querySelector(".run"), { rotation: 0 }, { rotation: 360 * 2, duration: stepT[i] - start, ease: "none" }, start);
+          tl.to(s.querySelector(".run"), { opacity: 0, duration: 0.1 }, stepT[i]);
+          tl.fromTo(s.querySelector(".done"), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.5)" }, stepT[i]);
+          tl.to(s.querySelector(".tm"), { opacity: 1, duration: 0.25 }, stepT[i]);
+        });
+        labelOut("#lb1", 12.15);
+
+        // ===== MOMENT 2 — A live URL, instantly 12.4–15.0 =====
+        labelIn("#lb2", 12.45);
+        tl.to("#st-bu", { opacity: 0, duration: 0.2 }, 12.45);
+        tl.fromTo("#st-ok", { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, 12.5);
+        tl.to("#rbar", { opacity: 0, duration: 0.3 }, 12.5);
+        tl.fromTo("#d-urlblk", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 12.5);
+        // macro push-in on the key action
+        const pnl = $("#detail"), blk = $("#d-urlblk"), btn = $("#d-open");
+        const PANEL_X = 1150, PANEL_Y = 200, PZ = 90, K = 2400 / (2400 - PZ);
+        const bx = PANEL_X + blk.offsetLeft + btn.offsetLeft + btn.offsetWidth / 2;
+        const by = PANEL_Y + blk.offsetTop + $("#d-btns").offsetTop + btn.offsetHeight / 2;
+        const fx = PANEL_X + blk.offsetLeft + 300, fy = PANEL_Y + blk.offsetTop + 90;
+        const S = 1.85;
+        const F = focus(fx, fy, S);
+        tl.to("#cam", { ...F, rotationX: 0, rotationY: 0, rotationZ: 0, duration: 0.95, ease: "power3.inOut" }, 12.9);
+        tl.to("#cam", { scale: S * 1.04, x: F.x * 1.04, y: F.y * 1.04, duration: 0.8, ease: "none" }, 13.85);
+        tl.fromTo("#spot", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 13.0);
+        // cursor screen target (with final scale S*1.04)
+        const sF = S * 1.04;
+        const cxS = 960 + K * (F.x * 1.04 + sF * (bx - 960)) - 6;
+        const cyS = 540 + K * (F.y * 1.04 + sF * (by - 540)) - 4;
+        tl.fromTo("#cursor", { x: cxS + 380, y: cyS + 260, opacity: 0 }, { x: cxS, y: cyS, opacity: 1, duration: 0.8, ease: "power3.inOut" }, 13.45);
+        tl.to("#d-open", { backgroundColor: "#93A1FF", boxShadow: "0 0 40px rgba(123,140,255,0.6)", duration: 0.2 }, 14.2);
+        tl.to("#d-open", { scale: 0.93, duration: 0.08, yoyo: true, repeat: 1, ease: "power2.out" }, 14.48);
+        tl.to("#cursor", { scale: 0.85, duration: 0.08, yoyo: true, repeat: 1, transformOrigin: "10% 10%" }, 14.48);
+        tl.set("#d-ripple", { left: btn.offsetLeft + blk.offsetLeft + btn.offsetWidth / 2 - 70, top: blk.offsetTop + $("#d-btns").offsetTop + btn.offsetHeight / 2 - 70 }, 0);
+        tl.fromTo("#d-ripple", { opacity: 0.9, scale: 0.2 }, { opacity: 0, scale: 1.6, duration: 0.6, ease: "power2.out", immediateRender: false }, 14.5);
+        tl.to("#cursor", { opacity: 0, duration: 0.25 }, 14.75);
+        tl.to("#spot", { opacity: 0, duration: 0.4 }, 14.7);
+        labelOut("#lb2", 14.85);
+        // stage recedes behind the opening preview
+        tl.to("#cam", { x: 0, y: 40, scale: 0.8, rotationX: 16, rotationY: -12, rotationZ: 1.5, duration: 0.9, ease: "power3.inOut" }, 14.65);
+        tl.to("#stagewrap", { opacity: 0.32, filter: "blur(6px)", duration: 0.7, ease: "power2.out" }, 14.75);
+        tl.to("#cam", { scale: 0.76, rotationY: -9, duration: 6, ease: "none" }, 15.55);
+
+        // ===== MOMENT 3 — Review together, then merge 14.6–21.3 =====
+        tl.fromTo("#pv", { opacity: 0, scale: 0.35, x: 280, y: 120, rotationY: 0, rotationX: 0 }, { opacity: 1, scale: 1, x: 0, y: 0, rotationY: 9, rotationX: 3, duration: 0.85, ease: "expo.out" }, 14.7);
+        tl.to("#pv", { rotationY: 5, rotationX: 2, x: 30, duration: 2.6, ease: "none" }, 15.55);
+        labelIn("#lb3", 15.25);
+        tl.fromTo("#pin1", { opacity: 0, scale: 0, y: -20 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(2.6)" }, 16.05);
+        tl.fromTo("#bub1", { opacity: 0, y: 14, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out" }, 16.2);
+        tl.set("#cmn", { textContent: "1" }, 16.1);
+        tl.fromTo("#pin2", { opacity: 0, scale: 0, y: -20 }, { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "back.out(2.6)" }, 16.95);
+        tl.fromTo("#bub2", { opacity: 0, y: 14, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out" }, 17.1);
+        tl.set("#cmn", { textContent: "2" }, 17.0);
+        tl.fromTo("#res1", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 17.7);
+        // merge request panel
+        tl.to("#pv", { x: -150, rotationY: 12, duration: 0.8, ease: "power3.inOut" }, 18.2);
+        tl.fromTo("#pr", { opacity: 0, x: 140, z: 160 }, { opacity: 1, x: 0, z: 60, duration: 0.7, ease: "power3.out" }, 18.3);
+        tl.to("#pr", { z: 80, duration: 2.6, ease: "none" }, 19.0);
+        tl.fromTo("#pr .chk", { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.25, ease: "power3.out" }, 18.75);
+        // cursor to Merge
+        const mg = $("#merge");
+        const prEl = $("#pr");
+        const KM = 2400 / (2400 - 70);
+        const mx = 960 + KM * (1260 + 36 + mg.offsetWidth * 0.62 - 960);
+        const my = 540 + KM * (250 + mg.offsetTop + mg.offsetHeight / 2 - 540);
+        tl.fromTo("#cursor", { x: mx + 260, y: my + 240, opacity: 0, scale: 1 }, { x: mx, y: my, opacity: 1, duration: 0.7, ease: "power3.inOut", immediateRender: false }, 19.6);
+        tl.to("#merge", { scale: 0.95, duration: 0.08, yoyo: true, repeat: 1 }, 20.38);
+        tl.to("#cursor", { scale: 0.85, duration: 0.08, yoyo: true, repeat: 1, transformOrigin: "10% 10%" }, 20.38);
+        tl.set("#m-ripple", { left: mg.offsetWidth * 0.62 - 75, top: mg.offsetHeight / 2 - 75 }, 0);
+        tl.fromTo("#m-ripple", { opacity: 0.9, scale: 0.2 }, { opacity: 0, scale: 1.7, duration: 0.6, ease: "power2.out", immediateRender: false }, 20.4);
+        tl.to("#merged", { opacity: 1, duration: 0.25 }, 20.45);
+        tl.to("#merge-t", { opacity: 0, duration: 0.15 }, 20.45);
+        tl.fromTo("#pr-note", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 20.6);
+        tl.to("#cursor", { opacity: 0, duration: 0.3 }, 20.55);
+        labelOut("#lb3", 20.95);
+        tl.to("#scrim", { opacity: 0, duration: 0.4 }, 21.0);
+        tl.to(["#pv", "#pr"], { opacity: 0, scale: 0.9, filter: "blur(8px)", duration: 0.45, ease: "power2.in" }, 21.1);
+        tl.to("#stagewrap", { opacity: 0, duration: 0.4 }, 21.15);
+
+        // ===== WALL 21.0–24.9 : pull back to every branch =====
+        tl.fromTo("#wallg", { rotationX: 52, rotationZ: -28, scale: 1.35, y: 120 }, { rotationX: 46, rotationZ: -24, scale: 0.98, y: -60, duration: 3.9, ease: "power2.out" }, 21.0);
+        tl.fromTo(cards, { opacity: 0 }, { opacity: 0.8, duration: 0.4, stagger: { each: 0.02, from: "center", grid: [5, 6] }, ease: "power2.out" }, 21.15);
+        tl.fromTo("#wall-plate", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 21.5);
+        wordsIn("#wall-t .w", 21.65, { y: 40, s: 0.11 });
+        wordsOut("#wall-t .w", 24.2);
+        tl.to("#wallin", { opacity: 0, duration: 0.45, ease: "power2.in" }, 24.3);
+
+        // ===== END 24.5–31 =====
+        tl.fromTo("#end-glow", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 1.4, ease: "power2.out" }, 24.5);
+        wordsIn("#tg1 .w", 24.75, { y: 44, s: 0.12, d: 0.6 });
+        wordsIn("#tg2 .w", 25.45, { y: 44, s: 0.12, d: 0.6 });
+        tl.fromTo(["#tg1", "#tg2"], { scale: 0.98 }, { scale: 1.02, duration: 2.6, ease: "none" }, 24.75);
+        wordsOut(["#tg1 .w", "#tg2 .w"], 27.1);
+        tl.fromTo("#lock svg", { opacity: 0, scale: 0.4, rotation: -25 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: "back.out(2)" }, 27.5);
+        tl.fromTo("#lock .wm", { opacity: 0, x: -30, filter: "blur(12px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.6, ease: "power3.out" }, 27.62);
+        tl.fromTo("#avail", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 28.1);
+        tl.fromTo("#cta", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 28.45);
+        tl.fromTo("#lock", { scale: 0.98 }, { scale: 1.02, duration: 3.5, ease: "none" }, 27.5);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

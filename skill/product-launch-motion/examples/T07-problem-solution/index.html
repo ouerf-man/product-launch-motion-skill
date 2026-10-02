@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Fredoka"; src: url(assets/fonts/fredoka-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Fredoka"; src: url(assets/fonts/fredoka-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+      @font-face { font-family: "Inter"; src: url(assets/fonts/inter-latin-700-normal.woff2) format("woff2"); font-weight: 700; }
+      :root {
+        --cream: #FFF7EE; --paper: #FFFFFF; --sunk: #FBEFE2; --line: #F0E0CF;
+        --ink: #2B1D14; --ink7: #4A3A2F; --ink5: #6E5B4D;
+        --coral: #F2552C; --coralD: #B8401B; --coralT: #FFE4D9;
+        --sage: #2E7D5B; --sageT: #DDF1E6;
+        --sky: #2F6FD8; --skyT: #E0ECFF;
+        --plum: #7B4CC4; --plumT: #EDE3FB;
+        --butter: #FFC94A;
+        --bad: #C9302C; --badT: #FDE3E1;
+        --r-lg: 28px; --r-md: 18px; --r-sm: 12px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--cream); }
+      #root { width: 100%; height: 100%; position: relative; overflow: hidden; font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; background: var(--cream); }
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .fill { position: absolute; inset: 0; }
+      .abs { position: absolute; }
+      .disp { font-family: "Fredoka", sans-serif; font-weight: 700; }
+      .w { display: inline-block; margin-right: 0.22em; }
+      .w:last-child { margin-right: 0; }
+      .dots { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(43,29,20,0.08) 1.6px, transparent 2px); background-size: 44px 44px; }
+      .eyebrow { font-family: "Inter"; font-weight: 700; font-size: 28px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--coralD); }
+
+      /* ---------- PROBLEM ---------- */
+      #p-bg { position: absolute; inset: 0; background: #F6EDE3; }
+      #hook { position: absolute; left: 0; right: 0; top: 452px; text-align: center; font-size: 112px; line-height: 1; letter-spacing: -0.01em; white-space: nowrap; }
+      #hook .hot { color: var(--coralD); }
+      .bub { position: absolute; padding: 18px 26px; border-radius: 28px; font-size: 32px; font-weight: 500; white-space: nowrap; box-shadow: 0 14px 30px -14px rgba(43,29,20,0.35); }
+      .bub.in { background: var(--paper); color: var(--ink); border-bottom-left-radius: 8px; }
+      .bub.out { background: #2A5FC4; color: #fff; border-bottom-right-radius: 8px; }
+      .bub .who { display: block; font-size: 28px; font-weight: 700; opacity: 0.6; margin-bottom: 4px; letter-spacing: 0.02em; }
+      #p-left { position: absolute; left: 130px; top: 330px; width: 760px; }
+      #p-left .eyebrow { margin-bottom: 26px; }
+      .sym { position: absolute; left: 0; top: 70px; width: 800px; font-size: 96px; line-height: 0.98; letter-spacing: -0.01em; }
+      #p-icons { position: absolute; left: 130px; top: 720px; display: flex; gap: 18px; }
+      .pic { width: 84px; height: 84px; border-radius: 24px; background: var(--paper); border: 2px solid var(--line); display: grid; place-items: center; color: #B9A797; }
+      .pic.on { color: var(--bad); }
+      #p-stage { position: absolute; left: 960px; top: 0; width: 960px; height: 1080px; }
+      #phone { position: absolute; left: 30px; top: 130px; width: 390px; height: 820px; border-radius: 56px; background: #1E1612; padding: 16px; box-shadow: 0 40px 80px -30px rgba(43,29,20,0.55); }
+      #phone .scr { position: absolute; inset: 16px; border-radius: 42px; background: #FBF7F2; overflow: hidden; }
+      #phone .top { height: 120px; border-bottom: 2px solid #EFE6DB; display: flex; align-items: center; gap: 16px; padding: 30px 26px 0; }
+      #phone .grp { width: 56px; height: 56px; border-radius: 50%; background: var(--butter); display: grid; place-items: center; font-weight: 700; font-size: 24px; }
+      #phone .gt { font-weight: 700; font-size: 28px; }
+      #phone .gs { font-size: 28px; color: var(--ink5); }
+      #badge { position: absolute; right: -18px; top: 60px; min-width: 92px; height: 72px; padding: 0 18px; border-radius: 999px; background: var(--bad); color: #fff; font-weight: 700; font-size: 40px; display: grid; place-items: center; box-shadow: 0 10px 24px -8px rgba(201,48,44,0.6); }
+      #msgs { position: absolute; left: 18px; right: 18px; bottom: 22px; display: flex; flex-direction: column; gap: 12px; }
+      .m { max-width: 290px; padding: 14px 18px; border-radius: 22px; font-size: 28px; line-height: 1.2; }
+      .m.l { background: #EDE5DA; align-self: flex-start; border-bottom-left-radius: 6px; }
+      .m.r { background: #2A5FC4; color: #fff; align-self: flex-end; border-bottom-right-radius: 6px; }
+      #noshow { position: absolute; left: 455px; top: 150px; width: 440px; background: var(--paper); border-radius: var(--r-lg); padding: 30px 32px; box-shadow: 0 30px 60px -24px rgba(43,29,20,0.45); border: 2px solid var(--line); }
+      #noshow .row1 { display: flex; align-items: center; justify-content: space-between; }
+      #noshow .day { font-family: "Fredoka"; font-weight: 700; font-size: 40px; }
+      #noshow .time { font-size: 28px; color: var(--ink5); font-weight: 500; margin-top: 6px; }
+      #noshow .who { margin-top: 18px; display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 500; }
+      .av { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 22px; flex: none; }
+      #stamp { position: absolute; right: -34px; bottom: -30px; background: #FFF7EE; padding: 8px 18px; border: 5px solid var(--bad); color: var(--bad); border-radius: 14px; font-family: "Fredoka"; font-weight: 700; font-size: 40px; letter-spacing: 0.04em; }
+      #clock { margin-top: 18px; display: flex; align-items: center; gap: 10px; color: var(--bad); font-weight: 700; font-size: 28px; }
+      #sheet { position: absolute; left: 440px; top: 560px; width: 470px; height: 446px; background: var(--paper); border-radius: 20px; overflow: hidden; box-shadow: 0 30px 60px -24px rgba(43,29,20,0.5); border: 2px solid #D9E3D9; }
+      #sheet .tb { height: 62px; background: #2E7D5B; color: #fff; display: flex; align-items: center; gap: 12px; padding: 0 20px; font-weight: 500; font-size: 28px; white-space: nowrap; }
+      #sheet .grid { display: grid; grid-template-columns: 50px 1.3fr 1fr 1fr; }
+      #sheet .c { height: 52px; border-right: 1px solid #E3E7E3; border-bottom: 1px solid #E3E7E3; font-size: 28px; display: flex; align-items: center; padding: 0 8px; color: #556; white-space: nowrap; overflow: hidden; }
+      #sheet .c.h { background: #F1F4F1; font-weight: 700; color: #667; justify-content: center; }
+      #sheet .c.red { background: #FBD4D1; }
+      #sheet .c.yel { background: #FFF0B8; }
+      #p-left .sym, #p-eye, #p-icons, #phone, #noshow, #sheet, #cursor { opacity: 0; }
+
+      /* ---------- TURN ---------- */
+      .iris { position: absolute; border-radius: 50%; }
+      #t-iris { left: -240px; top: -660px; width: 2400px; height: 2400px; background: var(--coral); }
+      #t-eyebrow { position: absolute; left: 0; right: 0; top: 300px; text-align: center; font-weight: 700; font-size: 36px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+      #t-lock { position: absolute; left: 0; right: 0; top: 380px; display: flex; align-items: center; justify-content: center; gap: 40px; }
+      #t-lock .wm { font-size: 210px; line-height: 1; color: var(--ink); letter-spacing: -0.01em; }
+      #t-mark { width: 190px; height: 190px; }
+      #t-sub { position: absolute; left: 0; right: 0; top: 660px; text-align: center; font-size: 60px; color: var(--ink); font-weight: 500; white-space: nowrap; }
+
+      /* ---------- SOLUTION ---------- */
+      #s-left { position: absolute; left: 130px; top: 330px; width: 640px; height: 420px; }
+      .beat { position: absolute; left: 0; top: 0; width: 640px; }
+      .beat .eyebrow { margin-bottom: 26px; }
+      .beat h2 { font-family: "Fredoka"; font-weight: 700; font-size: 92px; line-height: 0.98; letter-spacing: -0.01em; }
+      #s-prog { position: absolute; left: 130px; top: 790px; display: flex; gap: 12px; }
+      #s-prog i { display: block; width: 64px; height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; position: relative; }
+      #s-prog i b { position: absolute; inset: 0; background: var(--coral); transform-origin: 0 50%; }
+      #win-wrap { position: absolute; left: 820px; top: 120px; width: 990px; height: 840px; perspective: 2400px; }
+      #win { position: absolute; inset: 0; background: var(--paper); border-radius: 30px; border: 2px solid var(--line); box-shadow: 0 50px 100px -40px rgba(184,64,27,0.35), 0 10px 30px -12px rgba(43,29,20,0.18); overflow: hidden; }
+      #win .bar { height: 96px; display: flex; align-items: center; gap: 18px; padding: 0 30px; border-bottom: 2px solid var(--line); }
+      #win .bar .lg { width: 46px; height: 46px; }
+      #win .bar .tt { font-family: "Fredoka"; font-weight: 700; font-size: 34px; }
+      #win .bar .wk { font-size: 28px; color: var(--ink5); margin-left: 6px; }
+      #win .bar .sp { flex: 1; }
+      .btn { height: 58px; padding: 0 24px; border-radius: 999px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 28px; white-space: nowrap; }
+      .btn.ghost { border: 2px solid var(--line); color: var(--ink7); }
+      .btn.pri { background: var(--coralD); color: #fff; }
+      #g { position: absolute; left: 30px; right: 30px; top: 124px; }
+      .gr { display: grid; grid-template-columns: 210px repeat(7, 1fr); gap: 8px; margin-bottom: 8px; }
+      .gh { height: 50px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 28px; color: var(--ink5); }
+      .gh.we { color: var(--coralD); }
+      .gn { height: 92px; display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 28px; }
+      .gc { height: 92px; border-radius: 14px; background: var(--sunk); position: relative; }
+      .pill { position: absolute; inset: 6px; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; padding: 0 10px; font-weight: 700; font-size: 28px; line-height: 1.05; align-items: center; padding: 0; }
+      .pill small { font-weight: 500; font-size: 22px; opacity: 0.85; margin-top: 4px; }
+      .pill.k { background: var(--sageT); color: #1F5C42; border-left: 6px solid var(--sage); }
+      .pill.f { background: var(--skyT); color: #1D4FA3; border-left: 6px solid var(--sky); }
+      .pill.b { background: var(--plumT); color: #5A3496; border-left: 6px solid var(--plum); }
+      #legend { position: absolute; left: 30px; bottom: 34px; display: flex; gap: 26px; align-items: center; font-size: 28px; color: var(--ink5); font-weight: 500; }
+      #legend i { display: inline-block; width: 18px; height: 18px; border-radius: 6px; margin-right: 10px; vertical-align: -2px; }
+      #okchip { position: absolute; right: 30px; bottom: 26px; height: 60px; padding: 0 24px; border-radius: 999px; background: var(--sageT); color: #1F5C42; font-weight: 700; font-size: 28px; display: flex; align-items: center; gap: 10px; }
+      #toast { position: absolute; right: 30px; bottom: 30px; width: 600px; background: var(--paper); border-radius: 24px; border: 2px solid var(--line); box-shadow: 0 30px 60px -20px rgba(43,29,20,0.35); padding: 26px 28px; }
+      #toast .h { display: flex; align-items: center; gap: 14px; font-weight: 700; font-size: 30px; }
+      #toast .d { margin-top: 10px; font-size: 28px; color: var(--ink5); padding-left: 2px; }
+      #toast .acts { margin-top: 22px; display: flex; gap: 14px; justify-content: flex-end; }
+      #toast .ok { position: absolute; inset: 0; border-radius: 22px; background: var(--sage); color: #fff; display: flex; align-items: center; justify-content: center; gap: 14px; font-family: "Fredoka"; font-weight: 700; font-size: 44px; }
+      #swapLine { position: absolute; border: 4px dashed var(--coral); border-radius: 16px; }
+      #cursor { position: absolute; left: 0; top: 0; width: 50px; height: 50px; }
+      #ripple { position: absolute; width: 110px; height: 110px; border-radius: 50%; border: 5px solid var(--coral); opacity: 0; }
+      #confirm { position: absolute; left: 30px; right: 30px; bottom: 26px; height: 90px; border-radius: 22px; background: var(--sunk); display: flex; align-items: center; gap: 18px; padding: 0 24px; }
+      #confirm .avs { display: flex; }
+      #confirm .avs .av { width: 50px; height: 50px; font-size: 20px; margin-left: -10px; border: 3px solid var(--sunk); position: relative; }
+      #confirm .avs .av:first-child { margin-left: 0; }
+      #confirm .avs .av .tk { position: absolute; right: -6px; bottom: -6px; width: 24px; height: 24px; border-radius: 50%; background: var(--sage); display: grid; place-items: center; border: 2px solid #fff; }
+      #confirm .lbl { flex: 1; font-size: 28px; font-weight: 500; color: var(--ink7); }
+      #confirm .n { font-family: "Fredoka"; font-weight: 700; font-size: 44px; color: #1F5C42; }
+      #notifs { position: absolute; left: 1250px; top: 210px; width: 600px; }
+      .nt { position: absolute; left: 0; width: 600px; background: rgba(255,255,255,0.97); border-radius: 26px; padding: 22px 26px; display: flex; gap: 18px; align-items: center; box-shadow: 0 30px 60px -22px rgba(43,29,20,0.45); border: 2px solid var(--line); }
+      .nt .ic { width: 64px; height: 64px; flex: none; }
+      .nt .t1 { font-weight: 700; font-size: 28px; }
+      .nt .t2 { font-size: 28px; color: var(--ink7); margin-top: 2px; }
+
+      /* ---------- PROOF ---------- */
+      #pr-panel { position: absolute; inset: 0; background: var(--butter); }
+      #pr-num { position: absolute; left: 0; right: 0; top: 230px; text-align: center; font-size: 340px; line-height: 1; letter-spacing: -0.02em; color: var(--ink); white-space: nowrap; }
+      #pr-num small { font-size: 150px; margin-left: 20px; }
+      #pr-line { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font-size: 72px; font-weight: 700; color: var(--ink); white-space: nowrap; font-family: "Fredoka"; }
+      #pr-note { position: absolute; left: 0; right: 0; top: 770px; text-align: center; font-size: 30px; color: var(--ink7); font-weight: 500; }
+
+      /* ---------- END ---------- */
+      #e-bg { position: absolute; inset: 0; background: var(--coral); }
+      #e-tag { position: absolute; left: 0; right: 0; top: 250px; text-align: center; font-size: 150px; line-height: 1; color: var(--ink); white-space: nowrap; }
+      #e-avail { position: absolute; left: 0; right: 0; top: 440px; text-align: center; font-size: 48px; font-weight: 500; color: var(--ink); }
+      #e-rule { position: absolute; left: 860px; top: 560px; width: 200px; height: 4px; border-radius: 4px; background: rgba(43,29,20,0.35); }
+      #e-lock { position: absolute; left: 0; right: 0; top: 620px; display: flex; align-items: center; justify-content: center; gap: 24px; }
+      #e-lock .wm { font-size: 104px; line-height: 1; color: var(--ink); }
+      #e-mark { width: 100px; height: 100px; }
+      #e-cta { position: absolute; left: 0; right: 0; top: 790px; display: flex; justify-content: center; }
+      #e-cta .pillc { height: 84px; padding: 0 40px; border-radius: 999px; background: var(--ink); color: var(--cream); font-weight: 700; font-size: 36px; display: flex; align-items: center; gap: 14px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="24.5" data-width="1920" data-height="1080">
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="mus" src="assets/music/bgm-tutorial.mp3" data-start="0" data-duration="24.5" data-media-start="37.75" data-track-index="20" data-volume="0.45"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":0.8},{"t":7.4,"v":0.8},{"t":7.7,"v":1},{"t":23.0,"v":1},{"t":24.5,"v":0}]}]}'></audio>
+      <audio id="sx-b1" src="assets/sfx/click-soft.mp3" data-start="0.30" data-duration="0.36" data-track-index="21" data-volume="0.2"></audio>
+      <audio id="sx-b2" src="assets/sfx/click-soft.mp3" data-start="0.62" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-b3" src="assets/sfx/click-soft.mp3" data-start="0.94" data-duration="0.36" data-track-index="21" data-volume="0.2"></audio>
+      <audio id="sx-b4" src="assets/sfx/click-soft.mp3" data-start="1.26" data-duration="0.36" data-track-index="22" data-volume="0.2"></audio>
+      <audio id="sx-b5" src="assets/sfx/click-soft.mp3" data-start="1.58" data-duration="0.36" data-track-index="21" data-volume="0.2"></audio>
+      <audio id="sx-w1" src="assets/sfx/whoosh-short.mp3" data-start="2.55" data-duration="0.57" data-track-index="23" data-volume="0.25"></audio>
+      <audio id="sx-typ" src="assets/sfx/typing.mp3" data-start="3.0" data-duration="1.4" data-track-index="24" data-volume="0.18"></audio>
+      <audio id="sx-imp1" src="assets/sfx/impact-bass-2.mp3" data-start="4.75" data-duration="1.4" data-track-index="25" data-volume="0.28"></audio>
+      <audio id="sx-w2" src="assets/sfx/whoosh-short.mp3" data-start="5.95" data-duration="0.57" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-rise" src="assets/sfx/riser.mp3" data-start="6.0" data-duration="1.6" data-media-start="8.4" data-track-index="26" data-volume="0.3"></audio>
+      <audio id="sx-imp2" src="assets/sfx/impact-bass-1.mp3" data-start="7.6" data-duration="2.1" data-track-index="25" data-volume="0.4"></audio>
+      <audio id="sx-w3" src="assets/sfx/whoosh.mp3" data-start="10.25" data-duration="0.57" data-track-index="23" data-volume="0.3"></audio>
+      <audio id="sx-c1" src="assets/sfx/click.mp3" data-start="11.35" data-duration="0.36" data-track-index="21" data-volume="0.4"></audio>
+      <audio id="sx-p1" src="assets/sfx/click-soft.mp3" data-start="11.55" data-duration="0.36" data-track-index="22" data-volume="0.18"></audio>
+      <audio id="sx-p2" src="assets/sfx/click-soft.mp3" data-start="11.85" data-duration="0.36" data-track-index="21" data-volume="0.18"></audio>
+      <audio id="sx-p3" src="assets/sfx/click-soft.mp3" data-start="12.15" data-duration="0.36" data-track-index="22" data-volume="0.18"></audio>
+      <audio id="sx-p4" src="assets/sfx/pop.mp3" data-start="12.55" data-duration="0.7" data-track-index="27" data-volume="0.25"></audio>
+      <audio id="sx-w4" src="assets/sfx/whoosh-short.mp3" data-start="13.25" data-duration="0.57" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-p5" src="assets/sfx/pop.mp3" data-start="13.65" data-duration="0.7" data-track-index="27" data-volume="0.22"></audio>
+      <audio id="sx-c2" src="assets/sfx/click.mp3" data-start="14.65" data-duration="0.36" data-track-index="21" data-volume="0.4"></audio>
+      <audio id="sx-w5" src="assets/sfx/whoosh-short.mp3" data-start="15.0" data-duration="0.57" data-track-index="24" data-volume="0.18"></audio>
+      <audio id="sx-w6" src="assets/sfx/whoosh-short.mp3" data-start="16.15" data-duration="0.57" data-track-index="23" data-volume="0.22"></audio>
+      <audio id="sx-c3" src="assets/sfx/click.mp3" data-start="16.75" data-duration="0.36" data-track-index="21" data-volume="0.4"></audio>
+      <audio id="sx-n1" src="assets/sfx/pop.mp3" data-start="17.05" data-duration="0.7" data-track-index="27" data-volume="0.2"></audio>
+      <audio id="sx-n2" src="assets/sfx/pop.mp3" data-start="17.4" data-duration="0.7" data-track-index="28" data-volume="0.2"></audio>
+      <audio id="sx-n3" src="assets/sfx/pop.mp3" data-start="17.75" data-duration="0.7" data-track-index="27" data-volume="0.2"></audio>
+      <audio id="sx-w7" src="assets/sfx/whoosh.mp3" data-start="19.05" data-duration="0.57" data-track-index="23" data-volume="0.3"></audio>
+      <audio id="sx-imp3" src="assets/sfx/impact-bass-2.mp3" data-start="20.0" data-duration="1.5" data-track-index="25" data-volume="0.3"></audio>
+      <audio id="sx-w8" src="assets/sfx/whoosh.mp3" data-start="21.45" data-duration="0.57" data-track-index="23" data-volume="0.28"></audio>
+      <audio id="sx-c4" src="assets/sfx/click-soft.mp3" data-start="22.95" data-duration="0.36" data-track-index="21" data-volume="0.25"></audio>
+
+      <!-- ================= PROBLEM 0–8 ================= -->
+      <section id="s-prob" class="scene clip" data-start="0" data-duration="8.0" data-track-index="1" style="z-index:1">
+        <div id="p-wrap" class="fill">
+          <div id="p-bg"></div>
+          <div class="dots"></div>
+          <div id="bubs" class="fill"></div>
+          <div id="hook" class="disp"><span class="w">Who's</span><span class="w">covering</span><span class="w hot">Saturday?</span></div>
+
+          <div id="p-left">
+            <div class="eyebrow" id="p-eye">Every single week</div>
+            <div class="sym disp" id="sym1"><span class="w">Endless</span><span class="w">group</span><span class="w">texts.</span></div>
+            <div class="sym disp" id="sym2"><span class="w">Last-minute</span><span class="w">no-shows.</span></div>
+            <div class="sym disp" id="sym3"><span class="w">Spreadsheets</span><span class="w">on</span><span class="w">spreadsheets.</span></div>
+          </div>
+          <div id="p-icons">
+            <div class="pic" id="pic1"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+            <div class="pic" id="pic2"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 8 5 5"/><path d="m22 8-5 5"/></svg></div>
+            <div class="pic" id="pic3"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg></div>
+          </div>
+
+          <div id="p-stage" data-layout-allow-overlap>
+            <div id="phone">
+              <div class="scr">
+                <div class="top"><div class="grp">FT</div><div><div class="gt">Floor team</div><div class="gs">14 members</div></div></div>
+                <div id="msgs"></div>
+              </div>
+              <div id="badge">0</div>
+            </div>
+            <div id="noshow" data-layout-allow-overlap>
+              <div class="row1"><span class="day">Sat · Brunch</span></div><div class="time">9:00 AM – 3:00 PM</div>
+              <div class="who"><span class="av" style="background:#2F6FD8">JR</span>Jordan R. · Server</div>
+              <div id="clock"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Not in at 9:47</div>
+              <div id="stamp" data-layout-allow-overlap>NO-SHOW</div>
+            </div>
+            <div id="sheet">
+              <div class="tb"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/></svg>sched_v7_FINAL(2).xlsx</div>
+              <div class="grid" id="sgrid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TURN 7.6–10.8 ================= -->
+      <section id="s-turn" class="scene clip" data-start="7.55" data-duration="3.25" data-track-index="2" style="z-index:3">
+        <div id="t-panel" class="fill">
+          <div id="t-iris" class="iris"></div>
+          <div id="t-eyebrow">There's a better way</div>
+          <div id="t-lock">
+            <svg id="t-mark" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" rx="30" fill="#2B1D14"/><rect x="18" y="26" width="48" height="18" rx="9" fill="#FFF7EE"/><rect x="34" y="56" width="48" height="18" rx="9" fill="#FFC94A"/></svg>
+            <div class="wm disp">Shiftsy</div>
+          </div>
+          <div id="t-sub"><span class="w">Staff</span><span class="w">scheduling,</span><span class="w">minus</span><span class="w">the</span><span class="w">chaos.</span></div>
+        </div>
+      </section>
+
+      <!-- ================= SOLUTION 10.25–19.4 ================= -->
+      <section id="s-sol" class="scene clip" data-start="10.25" data-duration="9.15" data-track-index="3" style="z-index:2">
+        <div class="dots"></div>
+        <div id="sol-wrap" class="fill">
+          <div id="s-left">
+            <div class="beat" id="bt1"><div class="eyebrow">01 · Build</div><h2><span class="w">Your</span><span class="w">week,</span><span class="w">built</span><span class="w">in</span><span class="w">one</span><span class="w">click.</span></h2></div>
+            <div class="beat" id="bt2"><div class="eyebrow">02 · Swap</div><h2><span class="w">Shift</span><span class="w">swaps</span><span class="w">without</span><span class="w">the</span><span class="w">texts.</span></h2></div>
+            <div class="beat" id="bt3"><div class="eyebrow">03 · Notify</div><h2><span class="w">Everyone</span><span class="w">knows</span><span class="w">their</span><span class="w">shift.</span></h2></div>
+          </div>
+          <div id="s-prog"><i><b id="pg1"></b></i><i><b id="pg2"></b></i><i><b id="pg3"></b></i></div>
+          <div id="win-wrap">
+            <div id="win">
+              <div class="bar">
+                <svg class="lg" viewBox="0 0 100 100"><rect width="100" height="100" rx="30" fill="#F2552C"/><rect x="18" y="26" width="48" height="18" rx="9" fill="#FFF7EE"/><rect x="34" y="56" width="48" height="18" rx="9" fill="#FFC94A"/></svg>
+                <span class="tt">Shiftsy</span><span class="wk">Week of Mar 9</span>
+                <span class="sp"></span>
+                <div class="btn ghost" id="b-auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>Auto-fill</div>
+                <div class="btn pri" id="b-pub"><span id="b-pub-t">Publish</span></div>
+              </div>
+              <div id="g"></div>
+              <div id="legend"><span><i style="background:var(--sage)"></i>Kitchen</span><span><i style="background:var(--sky)"></i>Floor</span><span><i style="background:var(--plum)"></i>Bar</span></div>
+              <div id="okchip"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>28 shifts · 0 conflicts</div>
+              <div id="toast" data-layout-allow-overlap>
+                <div class="h" data-layout-allow-overlap><span class="av" style="background:#7B4CC4">MA</span>Maya wants to swap</div>
+                <div class="d" data-layout-allow-overlap>Sat 5–11 PM → Leo takes it</div>
+                <div class="acts"><div class="btn ghost">Decline</div><div class="btn pri" id="b-appr" style="background:#2E7D5B">Approve</div></div>
+                <div class="ok" id="toast-ok" data-layout-allow-overlap><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Swap approved</div>
+              </div>
+              <div id="swapLine"></div>
+              <div id="confirm">
+                <div class="avs" id="cavs"></div>
+                <span class="lbl">Shifts confirmed</span>
+                <span class="n"><span id="c-num">0</span> / 12</span>
+              </div>
+            </div>
+            <div id="ripple"></div>
+          </div>
+          <div id="notifs" data-layout-allow-overlap></div>
+          <svg id="cursor" viewBox="0 0 24 24"><path d="M4 2l16 9.5-7 1.6-3.6 6.9z" fill="#2B1D14" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </div>
+      </section>
+
+      <!-- ================= PROOF 19.05–21.8 ================= -->
+      <section id="s-proof" class="scene clip" data-start="19.05" data-duration="2.75" data-track-index="4" style="z-index:4">
+        <div id="pr-panel"></div>
+        <div id="pr-num" class="disp"><span id="pr-n">0</span><small>hrs</small></div>
+        <div id="pr-line"><span class="w">back</span><span class="w">every</span><span class="w">single</span><span class="w">week.</span></div>
+        <div id="pr-note">Avg. manager time saved · illustrative demo figure</div>
+      </section>
+
+      <!-- ================= END 21.45–24.5 ================= -->
+      <section id="s-end" class="scene clip" data-start="21.45" data-duration="3.05" data-track-index="5" style="z-index:5">
+        <div id="e-bg"></div>
+        <div id="e-tag" class="disp"><span class="w">Schedules,</span><span class="w">sorted.</span></div>
+        <div id="e-avail">Free for teams up to 15</div>
+        <div id="e-rule"></div>
+        <div id="e-lock">
+          <svg id="e-mark" viewBox="0 0 100 100"><rect width="100" height="100" rx="30" fill="#2B1D14"/><rect x="18" y="26" width="48" height="18" rx="9" fill="#FFF7EE"/><rect x="34" y="56" width="48" height="18" rx="9" fill="#FFC94A"/></svg>
+          <div class="wm disp">Shiftsy</div>
+        </div>
+        <div id="e-cta"><div class="pillc">Try it free · shiftsy.app</div></div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        let seed = 11;
+        const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => Array.from(document.querySelectorAll(s));
+        const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+        // ---------- hook bubbles ----------
+        const bubData = [
+          ["in", "Maya", "can't do sat, sorry!!", 150, 150, -3],
+          ["out", null, "who's on brunch?", 1300, 120, 2],
+          ["in", "Leo", "can someone swap w/ me", 1180, 300, -2],
+          ["in", "Priya", "is the schedule out yet?", 200, 760, 2],
+          ["out", null, "running 20 min late", 1250, 790, -2],
+          ["in", "Sam", "wait, I'm on Sunday?", 560, 900, 1],
+        ];
+        const bubs = bubData.map(([k, who, txt, x, y, r]) => {
+          const b = el("div", "bub " + k, (who ? `<span class="who">${who}</span>` : "") + txt);
+          b.style.left = x + "px"; b.style.top = y + "px";
+          $("#bubs").appendChild(b); b.dataset.r = r; return b;
+        });
+
+        // ---------- phone messages ----------
+        const msgs = [["l", "anyone free sat?"], ["l", "I can't, sorry"], ["r", "pls check the sheet"], ["l", "which sheet??"], ["l", "the new one or v6"], ["r", "v7 FINAL"], ["l", "I'm sick tmrw"], ["l", "can Leo cover?"]];
+        const msgEls = msgs.map(([s, t]) => { const m = el("div", "m " + s, t); $("#msgs").appendChild(m); return m; });
+
+        // ---------- spreadsheet ----------
+        const sg = $("#sgrid");
+        const heads = ["", "Name", "Sat", "Sun"];
+        heads.forEach((h) => sg.appendChild(el("div", "c h", h)));
+        const names = ["Maya", "Leo", "Jordan", "Priya", "Sam", "Ana"];
+        const cellTxt = ["9-3", "5-11", "??", "OFF", "9-3?", "swap", "5-11", "TBD"];
+        for (let r = 0; r < 6; r++) {
+          sg.appendChild(el("div", "c h", String(r + 1)));
+          for (let c = 0; c < 3; c++) {
+            const t = c === 0 ? names[r] : cellTxt[Math.floor(rnd() * cellTxt.length)];
+            let cls = "c";
+            if (c > 0 && (t === "??" || t === "TBD")) cls += " red";
+            else if (c > 0 && (t === "swap" || t === "9-3?")) cls += " yel";
+            sg.appendChild(el("div", cls, t));
+          }
+        }
+
+        // ---------- schedule grid ----------
+        const g = $("#g");
+        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const hr = el("div", "gr");
+        hr.appendChild(el("div", "gh", ""));
+        days.forEach((d, i) => hr.appendChild(el("div", "gh" + (i >= 5 ? " we" : ""), d)));
+        g.appendChild(hr);
+        const staff = [["Maya", "#7B4CC4", "b"], ["Leo", "#2F6FD8", "f"], ["Ana", "#2E7D5B", "k"], ["Jordan", "#C2410C", "f"], ["Priya", "#8A6200", "k"]];
+        const plan = [
+          [0, 1, 0, 1, 1, 2, 0],
+          [1, 0, 1, 0, 1, 0, 1],
+          [1, 1, 0, 1, 0, 1, 1],
+          [0, 1, 1, 0, 1, 1, 0],
+          [1, 0, 1, 1, 0, 1, 1],
+        ];
+        const times = { k: ["7–3", "Kitchen"], f: ["4–11", "Floor"], b: ["5–11", "Bar"] };
+        const pills = [];
+        let swapPill = null, leoSatCell = null;
+        staff.forEach(([n, c, role], ri) => {
+          const row = el("div", "gr");
+          row.appendChild(el("div", "gn", `<span class="av" style="background:${c}">${n.slice(0, 2).toUpperCase()}</span>${n}`));
+          plan[ri].forEach((v, di) => {
+            const cell = el("div", "gc");
+            if (v) {
+              const p = el("div", "pill " + role, `${times[role][0]}`);
+              cell.appendChild(p); pills.push({ p, k: ri * 0.07 + di * 0.11 + rnd() * 0.05 });
+              if (ri === 0 && di === 5) swapPill = p;
+            }
+            if (ri === 1 && di === 5) leoSatCell = cell;
+            row.appendChild(cell);
+          });
+          g.appendChild(row);
+        });
+        pills.sort((a, b) => a.k - b.k);
+
+        // confirmation avatars
+        const cav = $("#cavs");
+        const cols = ["#7B4CC4", "#2F6FD8", "#2E7D5B", "#C2410C", "#8A6200", "#B3365F", "#2A6E7D", "#5A4A3F"];
+        const ini = ["MA", "LE", "AN", "JO", "PR", "SA", "TK", "RB"];
+        const tks = [];
+        cols.forEach((c, i) => { const a = el("div", "av", `${ini[i]}<span class="tk"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>`); a.style.background = c; cav.appendChild(a); tks.push(a.querySelector(".tk")); });
+
+        // notifications
+        const mk = '<svg class="ic" viewBox="0 0 100 100"><rect width="100" height="100" rx="30" fill="#F2552C"/><rect x="18" y="26" width="48" height="18" rx="9" fill="#FFF7EE"/><rect x="34" y="56" width="48" height="18" rx="9" fill="#FFC94A"/></svg>';
+        const nts = [["Your week is ready", "Mon, Wed, Sat · 3 shifts"], ["Swap approved", "Leo has Sat 5–11 PM"], ["Reminder", "Brunch shift starts at 9"]].map(([a, b], i) => {
+          const n = el("div", "nt", `${mk}<div><div class="t1" data-layout-allow-overlap>${a}</div><div class="t2" data-layout-allow-overlap>${b}</div></div>`);
+          n.style.top = i * 150 + "px"; $("#notifs").appendChild(n); return n;
+        });
+
+        // ---------- timeline ----------
+        const tl = gsap.timeline({ paused: true });
+        const wordsIn = (sel, at, o = {}) => tl.fromTo(sel, { opacity: 0, y: o.y ?? 40, filter: "blur(14px)" }, { opacity: 1, y: 0, filter: "blur(0px)", duration: o.d ?? 0.5, stagger: o.s ?? 0.08, ease: "power3.out" }, at);
+        const wordsOut = (sel, at) => tl.to(sel, { opacity: 0, y: -28, filter: "blur(12px)", duration: 0.28, stagger: 0.03, ease: "power2.in" }, at);
+        const count = (node, from, to, at, dur, dec = 0) => { const o = { v: from }; tl.to(o, { v: to, duration: dur, ease: "power2.out", onUpdate: () => { node.textContent = o.v.toFixed(dec); } }, at); };
+
+        // ===== HOOK 0–2.6
+                wordsIn("#hook .w", 0.1, { y: 50, s: 0.12, d: 0.55 });
+        tl.fromTo("#hook", { scale: 0.96 }, { scale: 1.03, duration: 2.6, ease: "none" }, 0);
+        bubs.forEach((b, i) => {
+          tl.fromTo(b, { opacity: 0, scale: 0.6, rotation: 0, y: 20 }, { opacity: 1, scale: 1, rotation: +b.dataset.r, y: 0, duration: 0.4, ease: "back.out(2.2)" }, 0.3 + i * 0.27);
+          tl.to(b, { y: -14 + (i % 2) * 28, duration: 2.0, ease: "sine.inOut" }, 0.7 + i * 0.27);
+        });
+        wordsOut("#hook .w", 2.35);
+        tl.to(bubs, { opacity: 0, scale: 0.8, filter: "blur(8px)", duration: 0.35, stagger: 0.03, ease: "power2.in" }, 2.3);
+
+        // ===== AGITATION 2.6–7.6
+        tl.fromTo("#p-eye", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4 }, 2.65);
+        tl.fromTo("#p-icons", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4 }, 2.7);
+        // symptom 1
+        tl.set("#sym1", { opacity: 1 }, 2.6);
+        wordsIn("#sym1 .w", 2.75);
+        tl.to("#pic1", { color: "#C9302C", borderColor: "#F3B9B5", backgroundColor: "#FDE3E1", duration: 0.25 }, 2.9);
+        tl.fromTo("#phone", { opacity: 0, y: 120, rotation: -6 }, { opacity: 1, y: 0, rotation: -3, duration: 0.6, ease: "power3.out" }, 2.65);
+        tl.set(msgEls, { opacity: 0 }, 0);
+        msgEls.forEach((m, i) => tl.fromTo(m, { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.22, ease: "back.out(2)" }, 3.0 + i * 0.17));
+        count($("#badge"), 0, 47, 3.0, 1.6);
+        tl.fromTo("#badge", { scale: 0.4 }, { scale: 1, duration: 0.35, ease: "back.out(3)" }, 3.0);
+        wordsOut("#sym1 .w", 4.2);
+        // symptom 2
+        tl.set("#sym2", { opacity: 1 }, 4.5);
+        wordsIn("#sym2 .w", 4.52);
+        tl.to("#pic2", { color: "#C9302C", borderColor: "#F3B9B5", backgroundColor: "#FDE3E1", duration: 0.25 }, 4.6);
+        tl.fromTo("#noshow", { opacity: 0, x: 160, rotation: 10 }, { opacity: 1, x: 0, rotation: 4, duration: 0.55, ease: "power3.out" }, 4.4);
+        tl.fromTo("#stamp", { opacity: 0, scale: 2.2, rotation: -20 }, { opacity: 1, scale: 1, rotation: -8, duration: 0.3, ease: "power4.in" }, 4.5);
+        tl.fromTo("#noshow", { x: 0 }, { x: 10, duration: 0.05, yoyo: true, repeat: 3 }, 4.8);
+                wordsOut("#sym2 .w", 5.85);
+        // symptom 3
+        tl.set("#sym3", { opacity: 1 }, 6.15);
+        wordsIn("#sym3 .w", 6.17, { s: 0.07 });
+        tl.to("#pic3", { color: "#C9302C", borderColor: "#F3B9B5", backgroundColor: "#FDE3E1", duration: 0.25 }, 6.15);
+        tl.fromTo("#sheet", { opacity: 0, y: 200, rotation: -8 }, { opacity: 1, y: 0, rotation: -2, duration: 0.55, ease: "power3.out" }, 5.95);
+                // chaos crescendo
+        tl.to("#p-stage", { scale: 1.06, rotation: -1, duration: 1.4, ease: "power2.in" }, 6.3);
+        tl.to("#p-bg", { backgroundColor: "#E9DFD5", duration: 1.2, ease: "power1.in" }, 6.4);
+
+        // ===== TURN 7.6
+        tl.fromTo("#t-iris", { scale: 0 }, { scale: 1, duration: 0.5, ease: "expo.out" }, 7.6);
+        tl.fromTo("#t-eyebrow", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 7.8);
+        tl.fromTo("#t-mark", { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.6, ease: "back.out(2)" }, 8.1);
+        tl.fromTo("#t-lock .wm", { opacity: 0, x: -30, filter: "blur(14px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.55, ease: "power3.out" }, 8.2);
+        wordsIn("#t-sub .w", 8.75, { y: 24, s: 0.07 });
+        tl.fromTo("#t-lock", { scale: 0.98 }, { scale: 1.03, duration: 2.6, ease: "none" }, 8.1);
+        tl.to("#t-panel", { yPercent: -100, duration: 0.55, ease: "power3.inOut" }, 10.25);
+
+        // ===== SOLUTION 10.3–19.1
+        tl.set(["#bt2", "#bt3", "#toast", "#swapLine", "#confirm", "#okchip", "#ripple"], { opacity: 0 }, 0);
+        tl.set(pills.map((o) => o.p), { opacity: 0 }, 0);
+        tl.set(nts, { opacity: 0 }, 0);
+        tl.fromTo("#win", { rotationY: -14, rotationX: 4, x: 140, scale: 0.94, opacity: 0 }, { rotationY: -6, rotationX: 2, x: 0, scale: 1, opacity: 1, duration: 1.0, ease: "power3.out" }, 10.4);
+        tl.to("#win", { rotationY: -2, rotationX: 0, duration: 8, ease: "none" }, 11.4);
+        // beat 1
+        tl.fromTo("#bt1 .eyebrow", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4 }, 10.5);
+        wordsIn("#bt1 h2 .w", 10.55, { s: 0.07 });
+        tl.fromTo("#pg1", { scaleX: 0 }, { scaleX: 1, duration: 2.9, ease: "none" }, 10.4);
+        tl.set(["#pg2", "#pg3"], { scaleX: 0 }, 0);
+        // cursor coords are in #sol-wrap space. Auto-fill btn ≈ win left 820 + ~ (990-30-150-24-190) ...
+        tl.fromTo("#cursor", { x: 1500, y: 980, opacity: 0 }, { x: 1490, y: 160, opacity: 1, duration: 0.7, ease: "power3.inOut" }, 10.6);
+        tl.to("#b-auto", { scale: 0.93, duration: 0.08, yoyo: true, repeat: 1 }, 11.35);
+        tl.to("#b-auto", { backgroundColor: "#FFE4D9", borderColor: "#F2552C", color: "#B8401B", duration: 0.2 }, 11.38);
+                tl.to("#cursor", { x: 1560, y: 420, opacity: 0, duration: 0.5, ease: "power2.in" }, 11.6);
+        tl.fromTo(pills.map((o) => o.p), { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.035, ease: "back.out(2.2)" }, 11.45);
+        tl.fromTo("#okchip", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.4)" }, 12.55);
+        wordsOut("#bt1 h2 .w", 13.15);
+        tl.to("#bt1 .eyebrow", { opacity: 0, duration: 0.25 }, 13.15);
+        // beat 2
+        tl.set("#bt2", { opacity: 1 }, 13.3);
+        tl.fromTo("#bt2 .eyebrow", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4 }, 13.35);
+        wordsIn("#bt2 h2 .w", 13.4, { s: 0.07 });
+        tl.to("#pg2", { scaleX: 1, duration: 2.9, ease: "none" }, 13.3);
+        tl.to("#okchip", { opacity: 0, duration: 0.25 }, 13.3);
+        tl.to("#legend", { opacity: 0, duration: 0.25 }, 13.3);
+        tl.fromTo("#toast", { opacity: 0, y: 60, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.8)" }, 13.6);
+        tl.set("#toast-ok", { opacity: 0 }, 0);
+        tl.fromTo("#cursor", { x: 1700, y: 1000, opacity: 0 }, { x: 1665, y: 866, opacity: 1, duration: 0.6, ease: "power3.inOut" }, 14.0);
+        tl.to("#b-appr", { scale: 0.92, duration: 0.08, yoyo: true, repeat: 1 }, 14.65);
+        tl.fromTo("#toast-ok", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 14.75);
+        tl.to("#cursor", { opacity: 0, y: 980, duration: 0.4 }, 14.9);
+        // move Maya's Sat pill to Leo's row (one row down = 100px)
+        tl.to(swapPill, { y: 100, duration: 0.6, ease: "power3.inOut" }, 15.0);
+        tl.to(swapPill, { backgroundColor: "#E0ECFF", borderLeftColor: "#2F6FD8", color: "#1D4FA3", duration: 0.3 }, 15.3);
+        tl.to("#toast", { opacity: 0, y: 40, duration: 0.35, ease: "power2.in" }, 15.6);
+        wordsOut("#bt2 h2 .w", 16.05);
+        tl.to("#bt2 .eyebrow", { opacity: 0, duration: 0.25 }, 16.05);
+        // beat 3
+        tl.set("#bt3", { opacity: 1 }, 16.2);
+        tl.fromTo("#bt3 .eyebrow", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4 }, 16.25);
+        wordsIn("#bt3 h2 .w", 16.3, { s: 0.08 });
+        tl.to("#pg3", { scaleX: 1, duration: 2.85, ease: "none" }, 16.2);
+        tl.fromTo("#cursor", { x: 1720, y: 420, opacity: 0 }, { x: 1695, y: 160, opacity: 1, duration: 0.5, ease: "power3.inOut" }, 16.25);
+        tl.to("#b-pub", { scale: 0.93, duration: 0.08, yoyo: true, repeat: 1 }, 16.75);
+        tl.to("#b-pub", { backgroundColor: "#2E7D5B", duration: 0.2 }, 16.8);
+        tl.set("#b-pub-t", { textContent: "Publish" }, 16.0);
+        tl.set("#b-pub-t", { textContent: "Published" }, 16.82);
+        tl.to("#cursor", { opacity: 0, x: 1780, y: 300, duration: 0.4 }, 16.95);
+        tl.to("#win-wrap", { x: -150, duration: 0.8, ease: "power3.inOut" }, 16.85);
+                nts.forEach((n, i) => tl.fromTo(n, { opacity: 0, x: 120, scale: 0.92 }, { opacity: 1, x: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, 17.05 + i * 0.35));
+        tl.fromTo("#confirm", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 17.2);
+        tl.set(tks, { opacity: 0 }, 0);
+        tl.fromTo(tks, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.25, stagger: 0.12, ease: "back.out(3)" }, 17.4);
+        count($("#c-num"), 0, 12, 17.4, 1.1);
+        tl.to("#sol-wrap", { scale: 1.04, duration: 1.4, ease: "power1.in" }, 17.7);
+
+        // ===== PROOF 19.05–21.8
+        tl.fromTo("#pr-panel", { clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(75% at 50% 50%)", duration: 0.55, ease: "expo.out" }, 19.05);
+        tl.fromTo("#pr-num", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.8)" }, 19.2);
+        count($("#pr-n"), 0, 4, 19.25, 0.8);
+        tl.fromTo("#pr-num", { y: 0 }, { y: -10, duration: 0.12, yoyo: true, repeat: 1 }, 20.0);
+        wordsIn("#pr-line .w", 19.65, { y: 24, s: 0.08 });
+        tl.fromTo("#pr-note", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 20.1);
+
+        // ===== END 21.45–24.5
+        tl.fromTo("#e-bg", { yPercent: 100 }, { yPercent: 0, duration: 0.5, ease: "power3.inOut" }, 21.45);
+        wordsIn("#e-tag .w", 21.75, { y: 50, s: 0.14, d: 0.55 });
+        tl.fromTo("#e-avail", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 22.35);
+        tl.fromTo("#e-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power3.out" }, 22.6);
+        tl.fromTo("#e-mark", { scale: 0, rotation: -30 }, { scale: 1, rotation: 0, duration: 0.5, ease: "back.out(2)" }, 22.75);
+        tl.fromTo("#e-lock .wm", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 22.85);
+        tl.fromTo("#e-cta", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 23.05);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>
